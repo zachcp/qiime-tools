@@ -2,7 +2,9 @@
 
 
 ###install
+```[python]
 pip install --editable .
+```
 
 
 #### fastqconcat
