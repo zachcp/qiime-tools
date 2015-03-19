@@ -9,7 +9,7 @@ pip install --editable .
 **fastqconcat** will take two fastq files and concatenate each record set keeping only a certian amount of sequence and
 optionally reverse/complementing the reverse sequence/quality score
 
-```
+```[bash]
 fastqconcat --forward_fastq fastq_f.fastq.gz \
             --reverse_fastq fastq_r.fastq.gz \
             --outfile out.fq \
@@ -21,7 +21,7 @@ fastqconcat --forward_fastq fastq_f.fastq.gz \
 #### parallel_concat
 **parallel_concat** will take two fastq files and concatenate each record. The method is different as it splits
  the files using system `split` and `cat` functions rather than using BioPython's SeqIO iterators.
-```
+```[bash]
 parallel_concat --forward_fastq fastq_f.fastq.gz \
             --reverse_fastq fastq_r.fastq.gz \
             --outfile out.fq \
@@ -36,7 +36,7 @@ parallel_concat --forward_fastq fastq_f.fastq.gz \
 process them in parallel, and aggregate the results. Because it can run in parallel it us faster - MUCH faster.
 However this currently only supports one fastq file and one barcode file.
 
-```
+```[bash]
 parallel_concat --fastq reads.fastq \
             --barcode_fastq barcodes.fastq \
             --outfile seqs.fna \
