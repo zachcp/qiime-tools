@@ -66,16 +66,18 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     split_files_forward = sorted(glob.glob("forward_*"))
     split_files_barcode = sorted(glob.glob("barcode_*"))
     split_files_outdir = ["out_{}".format(i) for i,x in enumerate(split_files_forward)]
+    number_of_files= len(split_files_forward)
     assert len(split_files_forward) == len(split_files_barcode)
-    triples = zip(split_files_forward, split_files_barcode, split_files_outdir)
+    data = zip(split_files_forward, split_files_barcode, split_files_outdir, list(range(number_of_files)))
 
     #process the split files in parallel using multiprocessing
     print("Processing the Split Files in Parallel with {} cpus".format(ncpus))
     p = multiprocessing.Pool(ncpus)
     handlerfunc = partial(process_split_files, splitlibrarycommand=splitlibrarycommand,
-                          mappingfile=mappingfile, qual_cutoff=qual_cutoff, barcodetype=barcodetype)
+                          mappingfile=mappingfile, qual_cutoff=qual_cutoff, barcodetype=barcodetype,
+                          splitsize=splitsize)
 
-    results = p.imap_unordered(handlerfunc, triples)
+    results = p.imap_unordered(handlerfunc, data)
     for r in results:
         print(r)
 
@@ -90,10 +92,10 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     p.map(shutil.rmtree	, split_files_outdir)
 
 
-def process_split_files(triple,splitlibrarycommand, mappingfile, qual_cutoff, barcodetype):
+def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barcodetype, splitsize):
     """helper function for use with functional programming.
     just lets me unpack a tuple of file names"""
-    fastq,barcode_fastq,outdir = triple
+    fastq,barcode_fastq,outdir,number = data
 
     command = [splitlibrarycommand,
                    "-i", fastq,
@@ -101,6 +103,7 @@ def process_split_files(triple,splitlibrarycommand, mappingfile, qual_cutoff, ba
                    "-o", outdir,
                    "-m", mappingfile,
                    "-q", str(qual_cutoff),
+                   "--start_seq_id", str(number * (splitsize/4)),
                    "--barcode_type", barcodetype]
 
     call(command)
