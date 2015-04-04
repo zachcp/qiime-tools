@@ -115,7 +115,6 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-i", fastq,
                    "-b", barcode_fastq, 
                    "-o", outdir,
-                   "--discard_bad_windows",
                    "-m", mappingfile,
                    "-q", str(qual_cutoff),
                    "--start_seq_id", str(number * (splitsize/4)),
