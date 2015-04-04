@@ -32,7 +32,7 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     A wrapper around Qiime's split_libraries_fastq.py
 
     This script will split the files, process them in parallel, and aggregate the results. Because it can run in
-    parallel it us faster - MUCH faster. However thi currently only supports one fastq file and one barcode file.
+    parallel it us faster - MUCH faster. However this currently only supports one fastq file and one barcode file.
 
     Also note that the output from the split_library_log.py files are simple concatenated togehter so there is
     not great global analysis of your sequences.
@@ -90,6 +90,14 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
 
     print("cleaning up the temporary files....")
     p.map(shutil.rmtree	, split_files_outdir)
+
+    # check output filesize is not zero which will happen
+    # if something went wrong with the splitting step due to,say,
+    # an error with the mapping file
+    if os.path.getsize(outfile) == 0:
+        os.remove(outfile)
+        print("Error with Your process.. aborting...")
+        raise ValueError("Outputfile of size zero indicates an issues with your qiime setup")
 
 
 def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barcodetype, splitsize):
