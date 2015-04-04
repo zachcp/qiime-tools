@@ -27,9 +27,10 @@ from fastq_concat import isgzip
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--logfile', type=click.STRING, default="split_log.txt", help="logfile name")
 @click.option('--splitlibrarycommand', type=click.STRING, default="split_libraries_fastq.py", help="size (in lines) to split fastq")
+@click.option('--discardbadwindows/--no-discardbadwindows', default=True, help="whether to drop the entire bad sequence or not")
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
 def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype,qual_cutoff, logfile,
-                                  splitsize, splitlibrarycommand,ncpus):
+                                  splitsize, splitlibrarycommand,discardbadwindows, ncpus):
     """
     A wrapper around Qiime's split_libraries_fastq.py
 
@@ -77,7 +78,7 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     p = multiprocessing.Pool(ncpus)
     handlerfunc = partial(process_split_files, splitlibrarycommand=splitlibrarycommand,
                           mappingfile=mappingfile, qual_cutoff=qual_cutoff, barcodetype=barcodetype,
-                          splitsize=splitsize)
+                          splitsize=splitsize, discardbadwindows=discardbadwindows)
 
     results = p.imap_unordered(handlerfunc, data)
     for r in results:
@@ -93,7 +94,6 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     print("Concatenating the log to results to {}".format(logfile))
     call("cat out_*/split_library_log.txt  > {}".format(logfile), shell=True)
 
-
     print("cleaning up the temporary files....")
     p.map(shutil.rmtree	, split_files_outdir)
 
@@ -106,7 +106,7 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
         raise ValueError("Outputfile of size zero indicates an issues with your qiime setup")
 
 
-def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barcodetype, splitsize):
+def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barcodetype, splitsize, discardbadwindows):
     """helper function for use with functional programming.
     just lets me unpack a tuple of file names"""
     fastq,barcode_fastq,outdir,number = data
@@ -115,10 +115,14 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-i", fastq,
                    "-b", barcode_fastq, 
                    "-o", outdir,
+                   "--discard_bad_windows",
                    "-m", mappingfile,
                    "-q", str(qual_cutoff),
                    "--start_seq_id", str(number * (splitsize/4)),
                    "--barcode_type", barcodetype]
+
+    if discardbadwindows:
+        command.append("--discard_bad_windows")
 
     call(command)
     return "Finished processing a file...."
