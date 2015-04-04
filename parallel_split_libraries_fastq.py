@@ -25,9 +25,11 @@ from fastq_concat import isgzip
 @click.option('--barcodetype', type=click.STRING, prompt=True, help="filter reads below this quality score")
 @click.option('--qual_cutoff', type=click.INT, default=19, help="filter reads below this quality score")
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
+@click.option('--logfile', type=click.STRING, default="split_log.txt", help="logfile name")
 @click.option('--splitlibrarycommand', type=click.STRING, default="split_libraries_fastq.py", help="size (in lines) to split fastq")
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
-def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype,qual_cutoff, splitsize, splitlibrarycommand,ncpus):
+def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype,qual_cutoff, logfile,
+                                  splitsize, splitlibrarycommand,ncpus):
     """
     A wrapper around Qiime's split_libraries_fastq.py
 
@@ -87,6 +89,10 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
 
     print("Concatenating the results to {}".format(outfile))
     call("cat out_*/seqs.fna > {}".format(outfile), shell=True)
+
+    print("Concatenating the log to results to {}".format(logfile))
+    call("cat out_*/split_library_log.txt  > {}".format(logfile), shell=True)
+
 
     print("cleaning up the temporary files....")
     p.map(shutil.rmtree	, split_files_outdir)
