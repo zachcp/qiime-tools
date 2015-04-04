@@ -122,7 +122,7 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "--barcode_type", barcodetype]
 
     if discardbadwindows:
-        command.append("--discard_bad_windows")
+        command.append("--discardbadwindows")
 
     call(command)
     return "Finished processing a file...."
