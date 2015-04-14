@@ -105,8 +105,8 @@ def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_c
     print("Concatenating the log to results to {}".format(logfile))
     call("cat out_*/split_library_log.txt  > {}".format(logfile), shell=True)
 
-    print("cleaning up the temporary files....")
-    p.map(shutil.rmtree	, split_files_outdir)
+    #print("cleaning up the temporary files....")
+    #p.map(shutil.rmtree	, split_files_outdir)
 
     # check output filesize is not zero which will happen
     # if something went wrong with the splitting step due to,say,
