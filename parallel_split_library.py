@@ -30,7 +30,7 @@ from fastq_concat import isgzip
 #@click.option('--discardbadwindows/--no-discardbadwindows', default=True, help="whether to drop the entire bad sequence or not")
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
 @click.option('--qualwindow', type=click.INT, default=30, help="number of cpus to use")
-def parallel_split_library(fastq, qualfile, outfile, mappingfile, barcodetype,qual_cutoff, logfile,
+def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_cutoff, logfile,
                                   splitsize, splitlibrarycommand,
                                   #discardbadwindows,
                                   ncpus, qualwindow):
