@@ -123,10 +123,10 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                         ):
     """helper function for use with functional programming.
     just lets me unpack a tuple of file names"""
-    fastq,qual,outdir,number = data
+    fasta,qual,outdir,number = data
 
     command = [splitlibrarycommand,
-                   "-f", fastq,
+                   "-f", fasta,
                    "-q", qual,
                    "-o", outdir,
                    "-m", mappingfile,
@@ -134,8 +134,9 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-w", str(qualwindow),
                    "-q", str(qual_cutoff),
                    "-e", str(barcodeerrors),
-                   "-n", str(number * (splitsize/4))]
+                   "-n", str(number * (splitsize/2))]
 
+    print(command)
     call(command)
     return "Finished processing a file...."
 
