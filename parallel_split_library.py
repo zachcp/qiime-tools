@@ -87,7 +87,10 @@ def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_c
                           splitsize=splitsize, qualwindow=qualwindow, barcodeerrors=barcodeerrors
                           #,discardbadwindows=discardbadwindows
                           )
-
+    #make the output directories
+    for d in split_files_outdir:
+        os.mkdir(d)
+    #get your results
     results = p.imap_unordered(handlerfunc, data)
     for r in results:
         print(r)
