@@ -127,10 +127,10 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-q", qual,
                    "-o", outdir,
                    "-m", mappingfile,
-                   "-b", barcodetype,
-                   "-w", qualwindow,
+                   "-b", str(barcodetype),
+                   "-w", str(qualwindow),
                    "-q", str(qual_cutoff),
-                   "-e", barcodeerrors,
+                   "-e", str(barcodeerrors),
                    "-n", str(number * (splitsize/4))]
 
     call(command)
