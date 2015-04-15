@@ -55,6 +55,10 @@ def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_c
     except:
         raise StandardError("coreutils not installed or you are running on Windows")
 
+    try:
+        check_call(['zcat', '--h'])
+    except:
+        raise StandardError("seqtk not installed on your machine")
 
     # generate the split files and check for length equivalency.
     # note that the fasta and qual files are piped through seqtk to make both filetypes into
