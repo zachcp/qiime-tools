@@ -99,14 +99,17 @@ def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_c
     p.imap(os.remove, split_files_forward)
     p.imap(os.remove, split_files_barcode)
 
+    print("Concatenating the histogram file to results to {}".format(logfile))
+    call("cat out_*/histograms.txt  > histograms.txt", shell=True)
+
     print("Concatenating the results to {}".format(outfile))
     call("cat out_*/seqs.fna > {}".format(outfile), shell=True)
 
     print("Concatenating the log to results to {}".format(logfile))
     call("cat out_*/split_library_log.txt  > {}".format(logfile), shell=True)
 
-    #print("cleaning up the temporary files....")
-    #p.map(shutil.rmtree	, split_files_outdir)
+    print("cleaning up the temporary files....")
+    p.map(shutil.rmtree	, split_files_outdir)
 
     # check output filesize is not zero which will happen
     # if something went wrong with the splitting step due to,say,
@@ -134,8 +137,6 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-w", str(qualwindow),
                    "-e", str(barcodeerrors),
                    "-n", str(number * (splitsize/2))]
-
-    print(command)
     call(command)
-    return "Finished processing a file...."
+    return "Finished processing files {} and {}".format(fasta,qual)
 
