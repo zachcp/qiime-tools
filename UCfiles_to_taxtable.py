@@ -13,7 +13,7 @@ import click
 @click.option('--otus35', type=click.File('r'), prompt=True, help="name of the 35% Uclustfile")
 @click.option('--otus15', type=click.File('r'), prompt=True, help="name of the 15% Uclustfile")
 @click.option('--taxtable', type=click.File('w'), prompt=True, help="output the taxfile")
-def UCfiles_to_taxtable(derepfile, otus97, otus95, otus90, otus85, otus80, otus75, otus55, otus35, otus15, outfile):
+def UCfiles_to_taxtable(derepfile, otus97, otus95, otus90, otus85, otus80, otus75, otus55, otus35, otus15, taxtable):
     """
     This script takes a series of uclust clusterfiles and cobmines them to generate a master table of
     OTU membership at different percent identities. Right now the files are hardcoded so you must
