@@ -1,5 +1,6 @@
 from __future__ import print_function
 import click
+import pandas as pd
 
 @click.command()
 @click.option('--derepfile', type=click.File('r'), prompt=True,help="name of the fastq forward file")
