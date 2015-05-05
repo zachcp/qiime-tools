@@ -2,17 +2,17 @@ from __future__ import print_function
 import click
 
 @click.command()
-@click.option('--derepfile', type=click.File, prompt=True,help="name of the fastq forward file")
-@click.option('--otus97', type=click.File, prompt=True, help="name of the 97% Uclustfile")
-@click.option('--otus95', type=click.File, prompt=True, help="name of the 95% Uclustfile")
-@click.option('--otus90', type=click.File, prompt=True, help="name of the 90% Uclustfile")
-@click.option('--otus85', type=click.File, prompt=True, help="name of the 85% Uclustfile")
-@click.option('--otus80', type=click.File, prompt=True, help="name of the 80% Uclustfile")
-@click.option('--otus75', type=click.File, prompt=True, help="name of the 75% Uclustfile")
-@click.option('--otus55', type=click.File, prompt=True, help="name of the 55% Uclustfile")
-@click.option('--otus35', type=click.File, prompt=True, help="name of the 35% Uclustfile")
-@click.option('--otus15', type=click.File, prompt=True, help="name of the 15% Uclustfile")
-@click.option('--taxtable', type=click.File, prompt=True, help="output the taxfile")
+@click.option('--derepfile', type=click.File('r'), prompt=True,help="name of the fastq forward file")
+@click.option('--otus97', type=click.File('r'), prompt=True, help="name of the 97% Uclustfile")
+@click.option('--otus95', type=click.File('r'), prompt=True, help="name of the 95% Uclustfile")
+@click.option('--otus90', type=click.File('r'), prompt=True, help="name of the 90% Uclustfile")
+@click.option('--otus85', type=click.File('r'), prompt=True, help="name of the 85% Uclustfile")
+@click.option('--otus80', type=click.File('r'), prompt=True, help="name of the 80% Uclustfile")
+@click.option('--otus75', type=click.File('r'), prompt=True, help="name of the 75% Uclustfile")
+@click.option('--otus55', type=click.File('r'), prompt=True, help="name of the 55% Uclustfile")
+@click.option('--otus35', type=click.File('r'), prompt=True, help="name of the 35% Uclustfile")
+@click.option('--otus15', type=click.File('r'), prompt=True, help="name of the 15% Uclustfile")
+@click.option('--taxtable', type=click.File('w'), prompt=True, help="output the taxfile")
 def UCfiles_to_taxtable(derepfile, otus97, otus95, otus90, otus85, otus80, otus75, otus55, otus35, otus15, outfile):
     """
     This script takes a series of uclust clusterfiles and cobmines them to generate a master table of
