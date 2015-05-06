@@ -1,6 +1,9 @@
 from __future__ import print_function
 import click
+import sys
 import pandas as pd
+import numpy as np
+
 
 @click.command()
 @click.option('--derepfile', type=click.File('r'), prompt=True,help="name of the fastq forward file")
@@ -95,3 +98,31 @@ def process_secondary(ucfile,label_high, label_low):
     df = df[ ['query_sequence','target']]
     df = df.rename_axis({"target":label_low,"query_sequence":label_high}, axis=1)
     return df
+
+
+
+
+@click.command()
+@click.option('--taxtable', type=click.File('r'), prompt=True, help="output the taxfile")
+@click.option('--outfile', type=click.File('w'), prompt=True,help="name of the fastq forward file")
+@click.option('--otu', type=click.STRING, default="otu95", help="name of the column to filterby")
+def taxtable_to_otutable(taxtable, outfile, otu):
+    """
+    Takes the taxtable output from UCfiles_to_taxtable and
+    produces a qiime-ready OTU table:
+
+    #OTU ID Sample1 Sample2 ....
+    otu1    0       1       ....
+    otu2    0       2
+    """
+
+    df = pd.read_csv(taxtable)
+
+    assert(otu in df.columns)
+    assert("SampleCode" in df.columns)
+
+    df = df.groupby(['SampleCode',otu]).size().reset_index() #get sample/otu stats
+    df = df.pivot("SampleCode",otu,'size').fillna(value=0).T.reset_index() #pivot to get the correct shape
+    df = df.rename_axis({otu:"#OTU ID"},axis=1) #clean
+    df.to_csv(outfile,sep="\t", index=False) #write out text file
+    print('Writing Taxtable in OTUTable Format')
