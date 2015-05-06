@@ -16,9 +16,21 @@ import pandas as pd
 @click.option('--taxtable', type=click.File('w'), prompt=True, help="output the taxfile")
 def UCfiles_to_taxtable(derepfile, otus97, otus95, otus90, otus85, otus80, otus75, otus55, otus35, otus15, taxtable):
     """
-    This script takes a series of uclust clusterfiles and cobmines them to generate a master table of
+    This script takes a series of uclust clusterfiles and combines them to generate a master table of
     OTU membership at different percent identities. Right now the files are hardcoded so you must
     have generated these files during your cluster processing.
+
+    Output CSV file will look like the following and will have the same number of rows as the number of non-chimeric
+    sequences in your analysis (usually a few less than the number of original reads)
+
+
+    unique_sequence_ID,derep_otu,SampleCode,readID,otu97,otu95,otu90,otu85,otu80,otu75,otu55,otu35,otu15
+    CA06_5000213,CA06_5000213,CA06,CA06_5000213,OTU_580501,OTU_537314,OTU_416924,OTU_473588,OTU_119311,OTU_487531,OTU_415998,OTU_297299,OTU_81113
+    CA06_5000511,CA06_5000213,CA06,CA06_5000213,OTU_580501,OTU_537314,OTU_416924,OTU_473588,OTU_119311,OTU_487531,OTU_415998,OTU_297299,OTU_81113
+    CA06_5000562,CA06_5000213,CA06,CA06_5000213,OTU_580501,OTU_537314,OTU_416924,OTU_473588,OTU_119311,OTU_487531,OTU_415998,OTU_297299,OTU_81113
+    CA06_5000589,CA06_5000213,CA06,CA06_5000213,OTU_580501,OTU_537314,OTU_416924,OTU_473588,OTU_119311,OTU_487531,OTU_415998,OTU_297299,OTU_81113
+    CA06_5000599,CA06_5000213,CA06,CA06_5000213,OTU_580501,OTU_537314,OTU_416924,OTU_473588,OTU_119311,OTU_487531,OTU_415998,OTU_297299,OTU_81113
+    CA06_5000681,CA06_5000213,CA06,CA06_5000213,OTU_580501,OTU_537314,OTU_416924,OTU_473588,OTU_119311,OTU_487531,OTU_415998,OTU_297299,OTU_81113
     """
 
     ucfiles =  [ {"file": otus95, 'label_high': 'otu97', 'label_low': 'otu95'},
@@ -32,14 +44,13 @@ def UCfiles_to_taxtable(derepfile, otus97, otus95, otus90, otus85, otus80, otus7
 
     df_derep = load_derep(derepfile)
     df = load_97(otus97)
-    df = pd.merge(df_derep,df, left_on='derep_otu', right_on='readID')
-
     for uc in ucfiles:
         df2 = process_secondary( uc['file'], label_high = uc['label_high'], label_low=uc['label_low'])
         df = pd.merge(df, df2, on= uc['label_high'])
 
-    df.to_csv(taxtable)
+    df.to_csv(taxtable, index=False)
     return df
+
 
 names = ['Rec_type', 'clusternumber', 'Sequence_length', 'percent_identity',
          'strand', 'col6', 'col7', 'compressed_alignment', 'query_sequence',
@@ -72,7 +83,7 @@ def load_97(otu97):
 def process_secondary(ucfile,label_high, label_low):
     df = pd.read_table(ucfile, names=names)
     def add_target_sequence(row):
-        """ if an OTU is not joined to a cluter then
+        """ if an OTU is not joined to a cluster then
             add a target sequence name that is the original sequence
         """
         if row['target_sequence'] == '*':
