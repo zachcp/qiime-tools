@@ -115,13 +115,13 @@ def taxtable_to_otutable(taxtable, outfile, otu):
     otu1    0       1       ....
     otu2    0       2
     """
-
     df = pd.read_csv(taxtable)
 
     assert(otu in df.columns)
     assert("SampleCode" in df.columns)
 
     df = df.groupby(['SampleCode',otu]).size().reset_index() #get sample/otu stats
+    df.columns = ['SampleCode',otu, 'size']
     df = df.pivot("SampleCode",otu,'size').fillna(value=0).T.reset_index() #pivot to get the correct shape
     df = df.rename_axis({otu:"#OTU ID"},axis=1) #clean
     df.to_csv(outfile,sep="\t", index=False) #write out text file
