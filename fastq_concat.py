@@ -24,7 +24,10 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
                                                           helps. But more than a few CPUs won't get you much benefit")
 @click.option('--gzip_out', default=True, help="whether to gzip the outputfile")
 @click.option('--revcomp/--no-revcomp', default=True, help="whether to reverse complement the second file")
-def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, gzip_out, revcomp):
+@click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
+@click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
+def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, gzip_out, revcomp,
+                spacer, spacercharacters):
     """
     This script takes two fastq files and simply concatenates them to give a single 
     concatenated read as read from the forward strand. The second strand sequence is
@@ -48,7 +51,8 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, nc
     """
     concat_paired_read_files(forward_fastq=forward_fastq,reverse_fastq=reverse_fastq, 
                              outfile=outfile, keep_left=keep_left, keep_right=keep_right, 
-                             ncpus=ncpus, gzip_out=gzip_out, revcomp=revcomp)
+                             ncpus=ncpus, gzip_out=gzip_out, revcomp=revcomp, spacer=spacer,
+                             spacercharacters=spacercharacters)
 
 @click.command()
 @click.option('--forward_fastq', type=click.STRING, prompt=True,help="name of the fastq forward file")
@@ -125,7 +129,8 @@ def isgzip(f):
         return(False)
 
 
-def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, gzip_out, revcomp):
+def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, gzip_out, revcomp,
+                             spacer, spacercharacters):
     """
     the meat of fastqconcat. its in a different function so it can be called internally (due to somethign funky with click)
     """
@@ -151,7 +156,8 @@ def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, k
     fastqs = zip(fastq_f, fastq_r)
     
     # use partial to create a function needing only one argument
-    fastqfunc = partial(process_fastq, revcomp=revcomp, keep_right=keep_right, keep_left=keep_left)
+    fastqfunc = partial(process_fastq, revcomp=revcomp, keep_right=keep_right, keep_left=keep_left,
+                        spacer=spacer, spacercharacters=spacercharacters)
     
     if ncpus==1:
         #open and process the files by shelling out each fastq pair to the pool
@@ -171,7 +177,7 @@ def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, k
                     out_handle.write(str(result))
 
 
-def process_fastq(fastqs, revcomp ,keep_left, keep_right):
+def process_fastq(fastqs, revcomp ,keep_left, keep_right, spacer, spacercharacters):
     """
     take a forward and reverse fastq records, reverse complement the fastq and
     reverse the quality. Return a string on the concatenated record.
@@ -187,8 +193,13 @@ def process_fastq(fastqs, revcomp ,keep_left, keep_right):
         rqual = rqual[::-1]
 
     #put the data together
-    newseq  = fseq[:keep_left] + rseq[-keep_right:]
-    newqual = fqual[:keep_left] + rqual[-keep_right:]
+    if spacer:
+        newseq  = fseq[:keep_left] + rseq[-keep_right:]
+        newqual = fqual[:keep_left] + rqual[-keep_right:]
+    else:
+        newseq  = fseq[:keep_left] + spacercharacters + rseq[-keep_right:]
+        newqual = fqual[:keep_left] + " ".join(["0" for char in spacercharacters] ) + rqual[-keep_right:]
+
 
     return "@%s\n%s\n+\n%s\n" % (ftitle, newseq, newqual)
 
