@@ -31,8 +31,8 @@ from fastq_concat import isgzip
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
 def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype,qual_cutoff, logfile,
                                   splitsize, splitlibrarycommand,
-								  #discardbadwindows,
-								  ncpus):
+                                  #discardbadwindows,
+                                  ncpus):
     """
     A wrapper around Qiime's split_libraries_fastq.py
 
@@ -41,13 +41,22 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
 
     Also note that the output from the split_library_log.py files are simple concatenated togehter so there is
     not great global analysis of your sequences.
+
+    seealso: http://qiime.org/scripts/split_libraries.html
     """
+
 
     #check environment for the presence of system split and cat
     assert splitsize % 4 == 0
 
     try:
+        check_call(['split', '-h'])
+    except ValueError:
         check_call(['split', '--h'])
+    except:
+        raise StandardError("coreutils/split not installed or you are running on Windows")
+
+    try:
         check_call(['cat', '--h'])
         check_call(['zcat', '--h'])
     except:
@@ -81,8 +90,8 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     handlerfunc = partial(process_split_files, splitlibrarycommand=splitlibrarycommand,
                           mappingfile=mappingfile, qual_cutoff=qual_cutoff, barcodetype=barcodetype,
                           splitsize=splitsize
-						  #,discardbadwindows=discardbadwindows
-						  )
+                          #,discardbadwindows=discardbadwindows
+                          )
 
     results = p.imap_unordered(handlerfunc, data)
     for r in results:
@@ -111,8 +120,8 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
 
 
 def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barcodetype, splitsize,
-						#discardbadwindows
-						):
+                        #discardbadwindows
+                        ):
     """helper function for use with functional programming.
     just lets me unpack a tuple of file names"""
     fastq,barcode_fastq,outdir,number = data
@@ -124,7 +133,10 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-m", mappingfile,
                    "-q", str(qual_cutoff),
                    "--start_seq_id", str(number * (splitsize/4)),
-                   "--barcode_type", barcodetype]
+                   "--barcode_type", barcodetype,
+                   "--remove_unassigned",
+                   "--trim_seq_length"]
+
 
     #if discardbadwindows:
     #    command.append("--discardbadwindows")
