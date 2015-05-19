@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='qiime-tools',
-    version='0.1.7',
+    version='0.1.9',
     py_modules=['fastq_concat',
                 'parallel_split_libraries_fastq'],
     install_requires=[
