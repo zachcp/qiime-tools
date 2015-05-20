@@ -50,17 +50,11 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     assert splitsize % 4 == 0
 
     try:
-        check_call(['split', '-h'])
-    except ValueError:
         check_call(['split', '--h'])
-    except:
-        raise StandardError("coreutils/split not installed or you are running on Windows")
-
-    try:
         check_call(['cat', '--h'])
         check_call(['zcat', '--h'])
     except:
-        raise StandardError("coreutils not installed or you are running on Windows")
+        raise StandardError("coreutils not installed,out-of-date, or you are running on Windows")
     
 
     #generate the split files nad check for length equivalency
