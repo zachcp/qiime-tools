@@ -124,11 +124,11 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-i", fastq,
                    "-b", barcode_fastq, 
                    "-o", outdir,
+                   "-v",
                    "-m", mappingfile,
                    "-q", str(qual_cutoff),
                    "--start_seq_id", str(number * (splitsize/4)),
-                   "--barcode_type", barcodetype,
-                   "--trim_seq_length"]
+                   "--barcode_type", barcodetype]
 
 
     #if discardbadwindows:
