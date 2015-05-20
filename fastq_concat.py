@@ -11,9 +11,9 @@ from Bio.Seq import Seq
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
 @click.command()
-@click.option('--forward_fastq', type=click.STRING, prompt=True,help="name of the fastq forward file")
-@click.option('--reverse_fastq', type=click.STRING, prompt=True, help="name of the fastq reverse file")
-@click.option('--outfile', type=click.STRING, prompt=True, help="name of the output file")
+@click.option('--forward_fastq', type=click.File('r'), prompt=True,help="name of the fastq forward file")
+@click.option('--reverse_fastq', type=click.File('r'), prompt=True, help="name of the fastq reverse file")
+@click.option('--outfile', type=click.File('w'), prompt=True, help="name of the output file")
 @click.option('--keep_left', type=click.INT, default=250, help="how much of the the forward reads should be kept.")
 @click.option('--keep_right', type=click.INT, default=175, help="how much of the reverse reads should be kept")
 @click.option('--ncpus',  type=click.INT, default=4, help="number of cpus to use. A little bit of parallelization \
@@ -44,8 +44,8 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, nc
     This is intended for use with MiSeq reads where the paired ends are to be used for blasting or phylogenetic comparison.
     
     """
-    fastq_f = FastqGeneralIterator(open(forward_fastq,'r'))
-    fastq_r = FastqGeneralIterator(open(reverse_fastq,'r'))
+    fastq_f = FastqGeneralIterator(forward_fastq)
+    fastq_r = FastqGeneralIterator(reverse_fastq)
     fastqs = zip(fastq_f, fastq_r)
 
     # use partial to create a function needing only one argument
@@ -54,20 +54,18 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, nc
 
     if ncpus==1:
         #open and process the files by shelling out each fastq pair to the pool
-        with open(outfile, "w") as out_handle:
-            results = map(fastqfunc, fastqs)
-            for result in results:
-                if result:
-                    out_handle.write(str(result))
+        results = map(fastqfunc, fastqs)
+        for result in results:
+            if result:
+                outfile.write(str(result))
     else:
         # create a pool of processing nodes
         p = multiprocessing.Pool(ncpus)
         #open and process the files by shelling out each fastq pair to the pool
-        with open(outfile, 'w') as out_handle:
-            results = p.imap(fastqfunc, fastqs)
-            for result in results:
-                if result:
-                    out_handle.write(str(results))
+        results = p.imap(fastqfunc, fastqs)
+        for result in results:
+            if result:
+                outfile.write(str(results))
 
 
 def process_fastq(fastqs, revcomp, keep_left, keep_right, spacer, spacercharacters):
