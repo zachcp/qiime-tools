@@ -49,11 +49,12 @@ def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_c
     assert splitsize % 2 == 0
 
     try:
+        print("Checking that coreutils is on your system. Note: You must have coreutils >= 8.4")
         check_call(['split', '--h'])
         check_call(['cat', '--h'])
         check_call(['zcat', '--h'])
     except:
-        raise StandardError("coreutils not installed or you are running on Windows")
+        raise StandardError("coreutils not installed or you are running on Windows. Note: You must have coreutils >= 8.4")
 
     try:
         check_call(['zcat', '--h'])

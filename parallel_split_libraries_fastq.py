@@ -128,7 +128,6 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-q", str(qual_cutoff),
                    "--start_seq_id", str(number * (splitsize/4)),
                    "--barcode_type", barcodetype,
-                   "--remove_unassigned",
                    "--trim_seq_length"]
 
 
