@@ -58,7 +58,7 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, nc
             results = map(fastqfunc, fastqs)
             for result in results:
                 if result:
-                    outfile.write(str(result))
+                    out_handle.write(str(result))
     else:
         # create a pool of processing nodes
         p = multiprocessing.Pool(ncpus)
@@ -67,7 +67,7 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, nc
             results = p.imap(fastqfunc, fastqs)
             for result in results:
                 if result:
-                    outfile.write(str(results))
+                    out_handle.write(str(results))
 
 
 def process_fastq(fastqs, revcomp, keep_left, keep_right, spacer, spacercharacters):
