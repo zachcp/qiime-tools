@@ -134,8 +134,8 @@ def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, k
     """
     the meat of fastqconcat. its in a different function so it can be called internally (due to something funky with click)
     """
-    fastq_f = FastqGeneralIterator( open(forward_fastq,'r'))
-    fastq_r = FastqGeneralIterator( open(reverse_fastq,'r'))
+    fastq_f = FastqGeneralIterator(forward_fastq)
+    fastq_r = FastqGeneralIterator(reverse_fastq)
     fastqs = zip(fastq_f, fastq_r)
     
     # use partial to create a function needing only one argument
@@ -148,7 +148,7 @@ def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, k
             results = map(fastqfunc, fastqs)
             for result in results:
                 if result:
-                    out_handle.write(str(result))
+                    outfile.write(str(result))
     else:            
         # create a pool of processing nodes
         p = multiprocessing.Pool(ncpus)   
