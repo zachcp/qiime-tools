@@ -23,7 +23,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--ncpus',  type=click.INT, default=4, help="number of cpus to use. A little bit of parallelization \
                                                           helps. But more than a few CPUs won't get you much benefit")
 @click.option('--gzip_out', default=True, help="whether to gzip the outputfile")
-@click.option('--revcomp/--no-revcomp', default=True, help="whether to reverse complement the second file")
+@click.option('--revcomp/--no-revcomp', default=False, help="whether to reverse complement the second file")
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
 def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, gzip_out, revcomp,
@@ -74,11 +74,12 @@ def parallel_concat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right
     assert splitsize % 4 == 0
 
     try:
+        print("Checking that coreutils is on your system. Note: You must have coreutils >= 8.4")
         check_call(['split', '--h'])
         check_call(['cat', '--h'])
         check_call(['zcat', '--h'])
     except:
-        raise Error("coreutils not installed or running on Windows")
+        raise Error("coreutils not installed or running on Windows. Note: You must have coreutils >= 8.4")
 
     #generate the split files nad check for length equivalency
     print("Splitting the Forward Fastq File, {}".format(forward_fastq))
@@ -132,7 +133,7 @@ def isgzip(f):
 def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, gzip_out, revcomp,
                              spacer, spacercharacters):
     """
-    the meat of fastqconcat. its in a different function so it can be called internally (due to somethign funky with click)
+    the meat of fastqconcat. its in a different function so it can be called internally (due to something funky with click)
     """
     #load the forward data
     if isgzip(forward_fastq):
@@ -146,19 +147,19 @@ def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, k
     else:
         fastq_r = FastqGeneralIterator( open(reverse_fastq,'r'))
 
-    #generate an outhandle
-    if gzip_out:
-        out_handle = gzip.open(outfile, 'w')
-    else:
-        out_handle = open(outfile, 'w')
-
     #zip the two fastq iterators together
     fastqs = zip(fastq_f, fastq_r)
     
     # use partial to create a function needing only one argument
     fastqfunc = partial(process_fastq, revcomp=revcomp, keep_right=keep_right, keep_left=keep_left,
                         spacer=spacer, spacercharacters=spacercharacters)
-    
+
+    #generate an outhandle
+    if gzip_out:
+        out_handle = gzip.open(outfile, 'w')
+    else:
+        out_handle = open(outfile, 'w')
+
     if ncpus==1:
         #open and process the files by shelling out each fastq pair to the pool
         with open(outfile, "w") as out_handle:
@@ -170,12 +171,13 @@ def concat_paired_read_files(forward_fastq, reverse_fastq, outfile, keep_left, k
         # create a pool of processing nodes
         p = multiprocessing.Pool(ncpus)   
         #open and process the files by shelling out each fastq pair to the pool
-        with open(outfile, "w") as out_handle:
-            results = p.imap(fastqfunc, fastqs)
-            for result in results:
-                if result:
-                    out_handle.write(str(result))
+        results = p.imap(fastqfunc, fastqs)
+        for result in results:
+            if result:
+                out_handle.write(str(results))
 
+    #close the output
+    out_handle.close()
 
 def process_fastq(fastqs, revcomp ,keep_left, keep_right, spacer, spacercharacters):
     """
@@ -196,6 +198,7 @@ def process_fastq(fastqs, revcomp ,keep_left, keep_right, spacer, spacercharacte
     if spacer:
         newseq  = fseq[:keep_left] + rseq[-keep_right:]
         newqual = fqual[:keep_left] + rqual[-keep_right:]
+
     else:
         newseq  = fseq[:keep_left] + spacercharacters + rseq[-keep_right:]
         newqual = fqual[:keep_left] + " ".join(["0" for char in spacercharacters] ) + rqual[-keep_right:]
