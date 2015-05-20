@@ -25,7 +25,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--revcomp/--no-revcomp', default=False, help="whether to reverse complement the second file")
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
-def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, gzip_out, revcomp,
+def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, revcomp,
                 spacer, spacercharacters):
     """
     This script takes two fastq files and simply concatenates them to give a single 
