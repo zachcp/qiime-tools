@@ -22,7 +22,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--keep_right', type=click.INT, default=175, help="how much of the reverse reads should be kept")
 @click.option('--ncpus',  type=click.INT, default=4, help="number of cpus to use. A little bit of parallelization \
                                                           helps. But more than a few CPUs won't get you much benefit")
-@click.option('--gzip_out', default=True, help="whether to gzip the outputfile")
+@click.option('--gzip_out/--no_gzip_out', default=True, help="whether to gzip the outputfile")
 @click.option('--revcomp/--no-revcomp', default=False, help="whether to reverse complement the second file")
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
