@@ -3,8 +3,6 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import zip
 
-
-import gzip
 import os
 import glob
 import shutil
@@ -14,8 +12,6 @@ from subprocess import call, check_call
 from functools import partial
 
 import click
-from fastq_concat import isgzip
-
 
 @click.command()
 @click.option('--fastq', type=click.STRING, prompt=True,help="name of the fastq file")
@@ -27,7 +23,6 @@ from fastq_concat import isgzip
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--logfile', type=click.STRING, default="split_log.txt", help="logfile name")
 @click.option('--splitlibrarycommand', type=click.STRING, default="split_libraries_fastq.py", help="size (in lines) to split fastq")
-#@click.option('--discardbadwindows/--no-discardbadwindows', default=True, help="whether to drop the entire bad sequence or not")
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
 def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype,qual_cutoff, logfile,
                                   splitsize, splitlibrarycommand,
@@ -136,4 +131,10 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
 
     call(command)
     return "Finished processing a file...."
+
+def isgzip(f):
+    if os.path.basename(f).split(".")[-1] in ['gz', 'gzip']:
+        return(True)
+    else:
+        return(False)
 

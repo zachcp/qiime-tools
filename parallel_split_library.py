@@ -14,8 +14,6 @@ from subprocess import call, check_call
 from functools import partial
 
 import click
-from fastq_concat import isgzip
-
 
 @click.command()
 @click.option('--fasta', type=click.STRING, prompt=True,help="name of the fasta file")
@@ -31,6 +29,7 @@ from fastq_concat import isgzip
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
 @click.option('--qualwindow', type=click.INT, default=30, help="number of cpus to use")
 @click.option('--barcodeerrors', type=click.INT, default=1, help="maximum allows erros in the barcode")
+
 def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_cutoff, logfile,
                                   splitsize, splitlibrarycommand,barcodeerrors,
                                   #discardbadwindows,
@@ -144,4 +143,10 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-n", str(number * (splitsize/2))]
     call(command)
     return "Finished processing files {} and {}".format(fasta,qual)
+
+def isgzip(f):
+    if os.path.basename(f).split(".")[-1] in ['gz', 'gzip']:
+        return(True)
+    else:
+        return(False)
 
