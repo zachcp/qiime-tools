@@ -88,8 +88,6 @@ def process_fastq(fastqs, revcomp, keep_left, keep_right, spacer, spacercharacte
         if spacer:
             newseq  = fseq[:keep_left] + spacercharacters + rseq[-keep_right:]
             newqual = fqual[:keep_left] + "".join(["A" for char in spacercharacters]) + rqual[-keep_right:]
-            print("New Qual: {}".format(newqual))
-            print(len(newseq), len(newqual))
 
         else:
             newseq  = fseq[:keep_left] + rseq[-keep_right:]
@@ -102,8 +100,6 @@ def process_fastq(fastqs, revcomp, keep_left, keep_right, spacer, spacercharacte
         if spacer:
             newseq  = fseq[:keep_left] + spacercharacters + rseq[:keep_right]
             newqual = fqual[:keep_left] + "".join(["A" for char in spacercharacters]) + rqual[:keep_right]
-            print("New Qual: {}".format(newqual))
-            print(len(newseq), len(newqual))
 
         else:
             newseq  = fseq[:keep_left] + rseq[:keep_right]
