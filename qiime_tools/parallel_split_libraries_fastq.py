@@ -20,11 +20,14 @@ import click
 @click.option('--mappingfile', type=click.STRING, prompt=True, help="name of the Qiime mapping file")
 @click.option('--barcodetype', type=click.STRING, prompt=True, help="filter reads below this quality score")
 @click.option('--qual_cutoff', type=click.INT, default=19, help="filter reads below this quality score")
+@click.option('--max_bad_run_length', type=click.INT, default=1, help="th emost bad nts you can have before triggering truncation")
+@click.option('--sequence_max_n', type=click.INT, default=10, help="the most nubmer of n's you can have")
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--logfile', type=click.STRING, default="split_log.txt", help="logfile name")
 @click.option('--splitlibrarycommand', type=click.STRING, default="split_libraries_fastq.py", help="size (in lines) to split fastq")
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
-def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype,qual_cutoff, logfile,
+def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype, qual_cutoff,
+                                  max_bad_run_length, sequence_max_n, logfile,
                                   splitsize, splitlibrarycommand,
                                   #discardbadwindows,
                                   ncpus):
@@ -78,7 +81,7 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     p = multiprocessing.Pool(ncpus)
     handlerfunc = partial(process_split_files, splitlibrarycommand=splitlibrarycommand,
                           mappingfile=mappingfile, qual_cutoff=qual_cutoff, barcodetype=barcodetype,
-                          splitsize=splitsize
+                          splitsize=splitsize, max_bad_run_length=max_bad_run_length, sequence_max_n=sequence_max_n
                           #,discardbadwindows=discardbadwindows
                           )
 
@@ -108,7 +111,11 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
         raise ValueError("Outputfile of size zero indicates an issues with your qiime setup")
 
 
-def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barcodetype, splitsize,
+
+
+def process_split_files(data,splitlibrarycommand,
+                        mappingfile, qual_cutoff, barcodetype, splitsize,
+                        max_bad_run_length, sequence_max_n
                         #discardbadwindows
                         ):
     """helper function for use with functional programming.
@@ -122,6 +129,8 @@ def process_split_files(data,splitlibrarycommand, mappingfile, qual_cutoff, barc
                    "-v",
                    "-m", mappingfile,
                    "-q", str(qual_cutoff),
+                   "-r", max_bad_run_length,
+                   "-n", sequence_max_n,
                    "--start_seq_id", str(number * (splitsize/4)),
                    "--barcode_type", barcodetype]
 
