@@ -40,7 +40,7 @@ def test_sequences():
     assert seq2 == "CACTTCGAAGACGTCGCCGGTGCGGTACAGCCGCGCGCCCGGCTCGCCGAAGGGATCGGGGACGAAGCGCTCCGCCGTCTGCCCGGCGCGGTTCAGGTATCCGCGCGCCACCTGGATCCCGCCGATGTACAGCTCGCCCGCCACCCCCGGCGGCACGGGAGCCATCCTCCCATCCAGCAGGTAGGTCCGCACGTTCCCCATCGCCCGGCCGCGCGGGACGCCCCCGGATTCGCCCTCGGCGCCCCCCCCCACCGCAACCGCCACGGCGGCCTCCGCCGGGCGCGACCGGGTGGCGCGCCCC"
 
 def test_fastqconcat_basic():
-    "run fastqconcat and check the output"
+    "run fastqconcat and check that the sequences have been concatenated."
     runner=CliRunner()
     with runner.isolated_filesystem():
         outfq = "out.fq"
@@ -63,8 +63,7 @@ def test_fastqconcat_basic():
         assert str(firstrecord) == str(fq1_first.seq) + str(fq2_first.seq)
 
 def test_fastqconcat_revcomp():
-    "Make sure the reverse complement yields the reverse complement"
-
+    "Make sure that calling reverse complement yields the sequence that has been reverse complemented"
     runner=CliRunner()
     with runner.isolated_filesystem():
         outfq = "out.fq"
