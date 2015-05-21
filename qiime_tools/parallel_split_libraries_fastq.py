@@ -81,9 +81,7 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     p = multiprocessing.Pool(ncpus)
     handlerfunc = partial(process_split_files, splitlibrarycommand=splitlibrarycommand,
                           mappingfile=mappingfile, qual_cutoff=qual_cutoff, barcodetype=barcodetype,
-                          splitsize=splitsize, max_bad_run_length=max_bad_run_length, sequence_max_n=sequence_max_n
-                          #,discardbadwindows=discardbadwindows
-                          )
+                          splitsize=splitsize, max_bad_run_length=max_bad_run_length, sequence_max_n=sequence_max_n)
 
     results = p.imap_unordered(handlerfunc, data)
     for r in results:
@@ -129,8 +127,8 @@ def process_split_files(data,splitlibrarycommand,
                    "-v",
                    "-m", mappingfile,
                    "-q", str(qual_cutoff),
-                   "-r", max_bad_run_length,
-                   "-n", sequence_max_n,
+                   "-r", str(max_bad_run_length),
+                   "-n", str(sequence_max_n),
                    "--start_seq_id", str(number * (splitsize/4)),
                    "--barcode_type", barcodetype]
 
