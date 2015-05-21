@@ -80,17 +80,30 @@ def process_fastq(fastqs, revcomp, keep_left, keep_right, spacer, spacercharacte
 
     if revcomp:
         #get reverse complement and invert the quality score
+        #revcomp means the highquality data is now at the far end
+        #  so slicing will occur on the lef thand side counting form the right
         rseq = str(Seq(rseq).reverse_complement())
         rqual = rqual[::-1]
 
-    #put the data together
-    if spacer:
-        newseq  = fseq[:keep_left] + spacercharacters + rseq[-keep_right:]
-        newqual = fqual[:keep_left] + " ".join(["0" for char in spacercharacters]) + rqual[-keep_right:]
+        if spacer:
+            newseq  = fseq[:keep_left] + spacercharacters + rseq[-keep_right:]
+            newqual = fqual[:keep_left] + " ".join(["0" for char in spacercharacters]) + rqual[-keep_right:]
+
+        else:
+            newseq  = fseq[:keep_left] + rseq[-keep_right:]
+            newqual = fqual[:keep_left] + rqual[-keep_right:]
+
+        return "@%s\n%s\n+\n%s\n" % (ftitle, newseq, newqual)
 
     else:
-        newseq  = fseq[:keep_left] + rseq[-keep_right:]
-        newqual = fqual[:keep_left] + rqual[-keep_right:]
+        #put the data together
+        if spacer:
+            newseq  = fseq[:keep_left] + spacercharacters + rseq[:keep_right]
+            newqual = fqual[:keep_left] + " ".join(["0" for char in spacercharacters]) + rqual[:keep_right]
+
+        else:
+            newseq  = fseq[:keep_left] + rseq[:keep_right]
+            newqual = fqual[:keep_left] + rqual[:keep_right]
 
 
-    return "@%s\n%s\n+\n%s\n" % (ftitle, newseq, newqual)
+        return "@%s\n%s\n+\n%s\n" % (ftitle, newseq, newqual)
