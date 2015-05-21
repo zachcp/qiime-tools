@@ -85,12 +85,12 @@ def process_fastq(fastqs, revcomp, keep_left, keep_right, spacer, spacercharacte
 
     #put the data together
     if spacer:
-        newseq  = fseq[:keep_left] + rseq[-keep_right:]
-        newqual = fqual[:keep_left] + rqual[-keep_right:]
+        newseq  = fseq[:keep_left] + spacercharacters + rseq[-keep_right:]
+        newqual = fqual[:keep_left] + " ".join(["0" for char in spacercharacters]) + rqual[-keep_right:]
 
     else:
-        newseq  = fseq[:keep_left] + spacercharacters + rseq[-keep_right:]
-        newqual = fqual[:keep_left] + " ".join(["0" for char in spacercharacters] ) + rqual[-keep_right:]
+        newseq  = fseq[:keep_left] + rseq[-keep_right:]
+        newqual = fqual[:keep_left] + rqual[-keep_right:]
 
 
     return "@%s\n%s\n+\n%s\n" % (ftitle, newseq, newqual)
