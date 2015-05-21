@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='qiime-tools',
-    version='0.1.25',
+    version='0.2.0',
     install_requires=[
         'Click',
         'Biopython'
