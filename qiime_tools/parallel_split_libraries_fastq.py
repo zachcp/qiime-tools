@@ -30,7 +30,7 @@ import click
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
 @click.option('--retain_unassigned_reads/--no-retain_unassigned_reads', type=click.BOOL, default=False, help="retain sequences which \
                         don't map to a barcode in the mapping file (sample ID will be 'Unassigned'")
-@click.option('--max_barcode_errors', default=1.5, help='maximum number of errors in barcode')
+@click.option('--max_barcode_errors', type=click.INT, default=1, help='maximum number of errors in barcode')
 def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype, qual_cutoff,
                                   max_bad_run_length, sequence_max_n, logfile,
                                   splitsize, splitlibrarycommand,ncpus,
