@@ -13,24 +13,30 @@ from functools import partial
 
 import click
 
+
+
 @click.command()
 @click.option('--fastq', type=click.STRING, prompt=True,help="name of the fastq file")
 @click.option('--barcode_fastq', type=click.STRING, prompt=True,help="name of the barcode fastq file")
 @click.option('--outfile', type=click.STRING, prompt=True, help="name of the output dir")
 @click.option('--mappingfile', type=click.STRING, prompt=True, help="name of the Qiime mapping file")
 @click.option('--barcodetype', type=click.STRING, prompt=True, help="filter reads below this quality score")
-@click.option('--qual_cutoff', type=click.INT, default=19, help="filter reads below this quality score")
-@click.option('--max_bad_run_length', type=click.INT, default=1, help="th emost bad nts you can have before triggering truncation")
+@click.option('--qual_cutoff', type=click.INT, default=0, help="the maximum unacceptable Phred quality score")
+@click.option('--max_bad_run_length', type=click.INT, default=3, help="the most bad nts you can have before triggering truncation")
 @click.option('--sequence_max_n', type=click.INT, default=10, help="the most nubmer of n's you can have")
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--logfile', type=click.STRING, default="split_log.txt", help="logfile name")
 @click.option('--splitlibrarycommand', type=click.STRING, default="split_libraries_fastq.py", help="size (in lines) to split fastq")
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
+@click.option('--retain_unassigned_reads/--no-retain_unassigned_reads', type=click.BOOL, default=False, help="retain sequences which \
+                        don't map to a barcode in the mapping file (sample ID will be 'Unassigned'")
+@click.option('--max_barcode_errors', default=1.5, help='maximum number of errors in barcode')
 def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, barcodetype, qual_cutoff,
                                   max_bad_run_length, sequence_max_n, logfile,
-                                  splitsize, splitlibrarycommand,
-                                  #discardbadwindows,
-                                  ncpus):
+                                  splitsize, splitlibrarycommand,ncpus,
+                                  retain_unassigned_reads, max_barcode_errors):
+
+
     """
     A wrapper around Qiime's split_libraries_fastq.py
 
@@ -81,7 +87,8 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     p = multiprocessing.Pool(ncpus)
     handlerfunc = partial(process_split_files, splitlibrarycommand=splitlibrarycommand,
                           mappingfile=mappingfile, qual_cutoff=qual_cutoff, barcodetype=barcodetype,
-                          splitsize=splitsize, max_bad_run_length=max_bad_run_length, sequence_max_n=sequence_max_n)
+                          splitsize=splitsize, max_bad_run_length=max_bad_run_length, sequence_max_n=sequence_max_n,
+                          retain_unassigned_reads=retain_unassigned_reads, max_barcode_errors=max_barcode_errors)
 
     results = p.imap_unordered(handlerfunc, data)
     for r in results:
@@ -113,12 +120,13 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
 
 def process_split_files(data,splitlibrarycommand,
                         mappingfile, qual_cutoff, barcodetype, splitsize,
-                        max_bad_run_length, sequence_max_n
-                        #discardbadwindows
-                        ):
+                        max_bad_run_length, sequence_max_n, retain_unassigned_reads,
+                        max_barcode_errors):
     """helper function for use with functional programming.
     just lets me unpack a tuple of file names"""
     fastq,barcode_fastq,outdir,number = data
+
+
 
     command = [splitlibrarycommand,
                    "-i", fastq,
@@ -130,7 +138,9 @@ def process_split_files(data,splitlibrarycommand,
                    "-r", str(max_bad_run_length),
                    "-n", str(sequence_max_n),
                    "--start_seq_id", str(number * (splitsize/4)),
-                   "--barcode_type", barcodetype]
+                   "--barcode_type", barcodetype,
+                   "--retain_unassigned_reads", retain_unassigned_reads,
+                   "--max_barcode_errors", max_barcode_errors]
 
 
     #if discardbadwindows:
