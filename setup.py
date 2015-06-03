@@ -4,8 +4,9 @@ setup(
     name='qiime-tools',
     version='0.2.6',
     install_requires=[
-        'Click',
-        'Biopython'
+        'Click >= 0.4.0',
+        'Biopython >=1.6.5',
+        'qiime >=1.9.0'
     ],
     packages=find_packages(),
     entry_points='''
