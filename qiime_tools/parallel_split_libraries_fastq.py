@@ -126,6 +126,10 @@ def process_split_files(data,splitlibrarycommand,
     just lets me unpack a tuple of file names"""
     fastq,barcode_fastq,outdir,number = data
 
+    if retain_unassigned_reads:
+        unassigned_reads = "--retain_unassigned_reads"
+    else:
+        unassigned_reads = "--no-retain_unassigned_reads"
 
 
     command = [splitlibrarycommand,
@@ -139,7 +143,7 @@ def process_split_files(data,splitlibrarycommand,
                    "-n", str(sequence_max_n),
                    "--start_seq_id", str(number * (splitsize/4)),
                    "--barcode_type", barcodetype,
-                   "--retain_unassigned_reads", retain_unassigned_reads,
+                   unassigned_reads,
                    "--max_barcode_errors", max_barcode_errors]
 
 
