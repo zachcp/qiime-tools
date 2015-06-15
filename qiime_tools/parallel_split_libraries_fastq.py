@@ -144,7 +144,7 @@ def process_split_files(data,splitlibrarycommand,
                    "--start_seq_id", str(number * (splitsize/4)),
                    "--barcode_type", barcodetype,
                    unassigned_reads,
-                   "--max_barcode_errors", max_barcode_errors]
+                   "--max_barcode_errors", str(max_barcode_errors)]
 
 
     #if discardbadwindows:

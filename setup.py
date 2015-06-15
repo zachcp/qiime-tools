@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='qiime-tools',
-    version='0.2.7',
+    version='0.2.8',
     install_requires=[
         'Click >= 0.4.0',
         'Biopython >=1.6.5',
@@ -18,4 +18,6 @@ setup(
         UCfiles_to_taxtable = qiime_tools.UCfiles_to_taxtable:UCfiles_to_taxtable
         taxtable_to_otutable = qiime_tools.UCfiles_to_taxtable:taxtable_to_otutable
     ''',
+    test_requirements = ['pytest>=2.1']
+
 )
