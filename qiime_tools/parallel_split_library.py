@@ -4,7 +4,6 @@ standard_library.install_aliases()
 from builtins import zip
 
 
-import gzip
 import os
 import glob
 import shutil
@@ -43,22 +42,7 @@ def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_c
     Also note that the output from the split_library_log.py files are simple concatenated together so there is
     not great global analysis of your sequences.
     """
-
-    #check environment for the presence of system split and cat
     assert splitsize % 2 == 0
-
-    try:
-        print("Checking that coreutils is on your system. Note: You must have coreutils >= 8.4")
-        check_call(['split', '--h'])
-        check_call(['cat', '--h'])
-        check_call(['zcat', '--h'])
-    except:
-        raise StandardError("coreutils not installed or you are running on Windows. Note: You must have coreutils >= 8.4")
-
-    try:
-        check_call(['zcat', '--h'])
-    except:
-        raise StandardError("seqtk not installed on your machine")
 
     # generate the split files and check for length equivalency.
     # note that the fasta and qual files are piped through seqtk to make both filetypes into

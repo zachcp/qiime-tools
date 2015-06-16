@@ -49,17 +49,7 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
     seealso: http://qiime.org/scripts/split_libraries.html
     """
 
-
-    #check environment for the presence of system split and cat
     assert splitsize % 4 == 0
-
-    try:
-        check_call(['split', '--h'])
-        check_call(['cat', '--h'])
-        check_call(['zcat', '--h'])
-    except:
-        raise StandardError("coreutils not installed,out-of-date, or you are running on Windows")
-    
 
     #generate the split files nad check for length equivalency
     print("Splitting the Fastq File, {}".format(fastq))
@@ -137,12 +127,9 @@ def process_split_files(data,splitlibrarycommand,
                    "-n", str(sequence_max_n),
                    "--start_seq_id", str(number * (splitsize/4)),
                    "--barcode_type", barcodetype,
-                   "--retain_unassigned_reads", str(retain_unassigned_reads),
+                   #"--retain_unassigned_reads", str(retain_unassigned_reads),
                    "--max_barcode_errors", str(max_barcode_errors)]
 
-
-    #if discardbadwindows:
-    #    command.append("--discardbadwindows")
 
     call(command)
     return "Finished processing a file...."
