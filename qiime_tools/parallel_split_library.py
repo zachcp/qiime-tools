@@ -24,7 +24,6 @@ import click
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--logfile', type=click.STRING, default="split_log.txt", help="logfile name")
 @click.option('--splitlibrarycommand', type=click.STRING, default="split_libraries_fastq.py", help="size (in lines) to split fastq")
-#@click.option('--discardbadwindows/--no-discardbadwindows', default=True, help="whether to drop the entire bad sequence or not")
 @click.option('--ncpus', type=click.INT, default=4, help="number of cpus to use")
 @click.option('--qualwindow', type=click.INT, default=30, help="number of cpus to use")
 @click.option('--barcodeerrors', type=click.INT, default=1, help="maximum allows erros in the barcode")
@@ -48,16 +47,10 @@ def parallel_split_library(fasta, qual, outfile, mappingfile, barcodetype,qual_c
     # note that the fasta and qual files are piped through seqtk to make both filetypes into
     # two-line files.
     print("Splitting the Fasta File, {}".format(fasta))
-    if isgzip(fasta):
-        call("zcat {} | seqtk seq -l0 | split -l {} - {}".format(fasta, splitsize ,"forward_"),shell=True)
-    else:
-        call("cat {}  | seqtk seq -l0 | split -l {} - {}".format(fasta, splitsize ,"forward_"),shell=True)
+    call("cat {}  | seqtk seq -l0 | split -l {} - {}".format(fasta, splitsize ,"forward_"),shell=True)
 
     print("Splitting the Qual  File, {}".format(qual))
-    if isgzip(qual):
-        call("zcat {} | seqtk seq -l0 | split -l {} - {}".format(qual, splitsize,"barcode_"),shell=True)
-    else:
-        call("cat {}  | seqtk seq -l0 | split -l {} - {}".format(qual, splitsize,"barcode_"),shell=True)
+    call("cat {}  | seqtk seq -l0 | split -l {} - {}".format(qual, splitsize,"barcode_"),shell=True)
 
     #get the names of the split files and zip them together
     split_files_forward = sorted(glob.glob("forward_*"))

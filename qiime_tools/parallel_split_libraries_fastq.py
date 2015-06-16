@@ -53,16 +53,10 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
 
     #generate the split files nad check for length equivalency
     print("Splitting the Fastq File, {}".format(fastq))
-    if isgzip(fastq):
-        call("zcat {} | split -l {} - {}".format(fastq, splitsize,"forward_"),shell=True)
-    else:
-        call("cat {} | split -l {} - {}".format(fastq, splitsize,"forward_"),shell=True)
+    call("cat {} | split -l {} - {}".format(fastq, splitsize,"forward_"),shell=True)
 
     print("Splitting the Barcode Fastq File, {}".format(barcode_fastq))
-    if isgzip(barcode_fastq):
-        call("zcat {} | split -l {} - {}".format(barcode_fastq, splitsize,"barcode_"),shell=True)
-    else:
-        call("cat {} | split -l {} - {}".format(barcode_fastq, splitsize,"barcode_"),shell=True)
+    call("cat {} | split -l {} - {}".format(barcode_fastq, splitsize,"barcode_"),shell=True)
 
     #get the names of the split files and zip them together
     split_files_forward = sorted(glob.glob("forward_*"))
@@ -104,7 +98,6 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
         os.remove(outfile)
         print("Error with Your process.. aborting...")
         raise ValueError("Outputfile of size zero indicates an issues with your qiime setup")
-
 
 
 
