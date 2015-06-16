@@ -39,7 +39,6 @@ setup(
     entry_points='''
         [console_scripts]
         fastqconcat = qiime_tools.fastq_concat:fastqconcat
-        parallelconcat = qiime_tools.fastq_concat:parallel_concat
         parallel_split_library_fastq = qiime_tools.parallel_split_libraries_fastq:parallel_splitlibraries_fastq
         parallel_split_libraries = qiime_tools.parallel_split_library:parallel_split_library
         UCfiles_to_taxtable = qiime_tools.UCfiles_to_taxtable:UCfiles_to_taxtable

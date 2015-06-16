@@ -6,7 +6,6 @@
 pip install --editable .
 ```
 
-
 #### fastqconcat
 **fastqconcat** will take two fastq files and concatenate each record set keeping only a certian amount of sequence and
 optionally reverse/complementing the reverse sequence/quality score
@@ -17,20 +16,9 @@ fastqconcat --forward_fastq fastq_f.fastq.gz \
             --outfile out.fq \
             --keep_left 250 \
             --keep_right 175 \
-            --ncpus 2
-```
-
-#### parallel_concat
-**parallel_concat** will take two fastq files and concatenate each record. The method is different as it splits
- the files using system `split` and `cat` functions rather than using BioPython's SeqIO iterators.
-```[bash]
-parallel_concat --forward_fastq fastq_f.fastq.gz \
-            --reverse_fastq fastq_r.fastq.gz \
-            --outfile out.fq \
-            --keep_left 250 \
-            --keep_right 175 \
-            --ncpus 2
-            --splitsize 1000000 #howmany lines to split on
+            --ncpus 2 \
+            --spacer \
+            --spacercharacters NNNNNNNNNN"
 ```
 
 #### parallel_split_library_fastq
