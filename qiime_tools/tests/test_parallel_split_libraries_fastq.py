@@ -64,6 +64,24 @@ def test_parallel_splitlibraries_fastq():
                                 "--barcodetype", "18",
                                 "--qual_cutoff", "0",
                                 "--splitsize", "100",
+                                "--ncpus", "1"])
+
+        #assert the output is the correct length and sequence
+        assert not result.exception
+
+def test_parallel_splitlibraries_fastq_multiplecpus():
+    "split the files into 1000 line (250 sequence)chunks and process with 4 CPUs"
+    runner=CliRunner()
+    with runner.isolated_filesystem():
+        outfq = "out.fq"
+        result = runner.invoke(parallel_splitlibraries_fastq,
+                               ["--fastq", trimmed,
+                                "--barcode_fastq", barcodes,
+                                "--outfile", outfq,
+                                "--mappingfile", mappingfile,
+                                "--barcodetype", "18",
+                                "--qual_cutoff", "0",
+                                "--splitsize", "1000",
                                 "--ncpus", "4"])
 
         #assert the output is the correct length and sequence
