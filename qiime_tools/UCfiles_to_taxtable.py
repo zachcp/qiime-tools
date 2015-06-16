@@ -99,9 +99,6 @@ def process_secondary(ucfile,label_high, label_low):
     df = df.rename_axis({"target":label_low,"query_sequence":label_high}, axis=1)
     return df
 
-
-
-
 @click.command()
 @click.option('--taxtable', type=click.File('r'), prompt=True, help="output the taxfile")
 @click.option('--outfile', type=click.File('w'), prompt=True,help="name of the fastq forward file")
