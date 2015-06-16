@@ -4,6 +4,11 @@ from setuptools.command.test import test as TestCommand
 
 
 class PyTest(TestCommand):
+    """
+    pytest class for runnin py.test test.
+    check out: http://pytest.org/latest/goodpractises.html
+    fro more info
+    """
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
 
     def initialize_options(self):
