@@ -9,7 +9,7 @@ import glob
 import shutil
 
 import multiprocessing
-from subprocess import call, check_call
+from subprocess import call
 from functools import partial
 
 import click
