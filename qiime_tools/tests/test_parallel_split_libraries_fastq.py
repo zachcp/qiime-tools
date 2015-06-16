@@ -11,8 +11,8 @@ from qiime_tools.parallel_split_libraries_fastq import parallel_splitlibraries_f
 from click.testing import CliRunner
 
 
-trimmed     = fixname("data/trimmeed.fq")
-barcodes    = fixname("data/barcodes.fq")
+trimmed     = fixname("data/trimmed_small.fq")
+barcodes    = fixname("data/barcodes_small.fq")
 mappingfile = fixname("data/MappingFile.txt")
 
 
@@ -64,7 +64,7 @@ def test_parallel_splitlibraries_fastq():
                                 "--barcodetype", "18",
                                 "--qual_cutoff", "0",
                                 "--splitsize", "100",
-                                "--ncpus", "1"])
+                                "--ncpus", "4"])
 
         #assert the output is the correct length and sequence
         assert not result.exception
