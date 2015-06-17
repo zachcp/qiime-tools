@@ -2,9 +2,6 @@
 """
 This file test the parallel_split_libraries_fastq script.
 """
-
-
-from subprocess import call, check_call
 from test_fastqconcat import fixname
 from qiime_tools.parallel_split_libraries_fastq import parallel_splitlibraries_fastq
 
@@ -14,35 +11,6 @@ from click.testing import CliRunner
 trimmed     = fixname("data/trimmed_small.fq")
 barcodes    = fixname("data/barcodes_small.fq")
 mappingfile = fixname("data/MappingFile.txt")
-
-
-# System Utility Tests
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-
-
-def test_coreutils():
-    """
-    Checking that coreutils is on your system. Note: You must have coreutils >= 8.4
-
-    Since we use the CLI of Split and require it to work as expected we require that 8.4 or greater is used.
-    this will cause issues on MacOSX. This will fail if
-
-    """
-    check_call(['split', '--h'])
-    check_call(['cat', '--h'])
-    check_call(['zcat', '--h'])
-
-def test_seqtk():
-    """
-    Checking that coreutils is on your system. Note: You must have coreutils >= 8.4
-
-    Since we use the CLI of Split and require it to work as expected we require that 8.4 or greater is used.
-    this will cause issues on MacOSX. This will fail if
-
-    """
-    assert(call('seqtk', shell=True) == 1)
 
 
 # Splitting Fastq Tests.
