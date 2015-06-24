@@ -12,7 +12,6 @@ from qiime_tools.fastq_concat import fastqconcat
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import IUPAC
 from Bio.Alphabet import generic_dna
 
 from click.testing import CliRunner
@@ -133,7 +132,10 @@ def test_fastqconcat_discard():
         return rec
 
     runner=CliRunner()
+
+
     with runner.isolated_filesystem():
+        "testing that single sequence is not included in the output"
         outfq = "out.fq"
 
         result = runner.invoke(fastqconcat,
@@ -150,6 +152,7 @@ def test_fastqconcat_discard():
         assert not os.path.exists(outfq)
 
     with runner.isolated_filesystem():
+        "testing that single sequence is not included in the output"
         outfq = "out.fq"
 
         seq1f = randomfastq(name="seq1f", length=10)
@@ -171,9 +174,42 @@ def test_fastqconcat_discard():
         assert not result.exception
         assert not os.path.exists(outfq)
 
+    with runner.isolated_filesystem():
+        """
+        Make Three sets of sequences:
+        one where both are too short,
+        one where both are long enough
+        one there only one is long enough.
 
+        Only where both are long enough shouuld we have output
+        """
+        outfq = "out.fq"
 
+        seq1f = randomfastq(name="seq1f", length=10)
+        seq2f = randomfastq(name="seq2f", length=12)
+        seq3f = randomfastq(name="seq3f", length=12)
 
+        seq1r = randomfastq(name="seq1r", length=10)
+        seq2r = randomfastq(name="seq1r", length=12)
+        seq3r = randomfastq(name="seq1r", length=10)
+
+        SeqIO.write([seq1f,seq2f,seq3f],"outf.fq","fastq")
+        SeqIO.write([seq1r,seq2r,seq3r],"outr.fq","fastq")
+
+        result = runner.invoke(fastqconcat,
+                               ['--forward_fastq', "outf.fq",
+                                '--reverse_fastq', "outr.fq",
+                                '--outfile', outfq,
+                                '--keep_left', 11,
+                                '--keep_right', 11,
+                                '--ncpus', 1,
+                                '--discard'])
+
+        #output but no sequence
+        assert not result.exception
+        assert os.path.exists(outfq)
+        records = [rec for rec in SeqIO.parse(open(outfq,'r'),'fastq')]
+        assert len(records) == 1
 
 
 
