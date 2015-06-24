@@ -14,6 +14,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--forward_fastq', type=click.File('r'), prompt=True,help="name of the fastq forward file")
 @click.option('--reverse_fastq', type=click.File('r'), prompt=True, help="name of the fastq reverse file")
 @click.option('--outfile', type=click.File('w'), prompt=True, help="name of the output file")
+@click.option('--discard/--no-discard', default=False, help="trim reads where forward or reverse are shorter than kep_left or keep_right")
 @click.option('--keep_left', type=click.INT, default=250, help="how much of the the forward reads should be kept.")
 @click.option('--keep_right', type=click.INT, default=175, help="how much of the reverse reads should be kept")
 @click.option('--ncpus',  type=click.INT, default=4, help="number of cpus to use. A little bit of parallelization \
@@ -21,7 +22,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--revcomp/--no-revcomp', default=False, help="whether to reverse complement the second file")
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
-def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, ncpus, revcomp,
+def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_right, ncpus, revcomp,
                 spacer, spacercharacters):
     """
     This script takes two fastq files and simply concatenates them to give a single 
@@ -49,7 +50,7 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, nc
     fastqs = zip(fastq_f, fastq_r)
 
     # use partial to create a function needing only one argument
-    fastqfunc = partial(process_fastq, revcomp=revcomp, keep_right=keep_right, keep_left=keep_left,
+    fastqfunc = partial(process_fastq, revcomp=revcomp, discard=discard, keep_right=keep_right, keep_left=keep_left,
                         spacer=spacer, spacercharacters=spacercharacters)
 
     if ncpus==1:
@@ -68,7 +69,7 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, keep_left, keep_right, nc
                 outfile.write(result)
 
 
-def process_fastq(fastqs, revcomp, keep_left, keep_right, spacer, spacercharacters):
+def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, spacercharacters):
     """
     take a forward and reverse fastq records, reverse complement the fastq and
     reverse the quality. Return a string on the concatenated record.
@@ -77,6 +78,11 @@ def process_fastq(fastqs, revcomp, keep_left, keep_right, spacer, spacercharacte
     fastqf, fastqr = fastqs
     ftitle, fseq, fqual = fastqf
     rtitle, rseq, rqual = fastqr
+
+    #if trim then check to see length of sequences are sufficient. If not return none.
+    if discard:
+        if len(fseq) < keep_left or len(rseq) < keep_right:
+            return None
 
     if revcomp:
         #get reverse complement and invert the quality score

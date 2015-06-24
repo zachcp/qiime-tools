@@ -6,8 +6,15 @@ whether our commands are correct.
 
 """
 import os
+import random
+
 from qiime_tools.fastq_concat import fastqconcat
 from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import IUPAC
+from Bio.Alphabet import generic_dna
+
 from click.testing import CliRunner
 
 
@@ -109,6 +116,66 @@ def test_fastqconcat_trimming():
         assert len(str(fq1_first.seq)[:250]) == 250
         assert len(str(fq2_first.seq)[:250]) == 250
         assert str(firstrecord) == str(fq1_first.seq)[:250] + str(fq2_first.seq)[:250]
+
+def test_fastqconcat_discard():
+    "When using a trim length greater thatn the sequence, discard the sequence"
+
+    nucleotides = ['A','C','T','G']
+
+    def randomfastq(name = "seq1",length=10):
+        "make a fastq of length length with filler quality values"
+        seq = "".join([random.choice(nucleotides) for x in range(length)])
+        bioseq = Seq(seq, generic_dna)
+        rec = SeqRecord(bioseq)
+        rec.letter_annotations['phred_quality'] = [40] * len(bioseq)
+        rec.name = name
+        rec.id = name
+        return rec
+
+    runner=CliRunner()
+    with runner.isolated_filesystem():
+        outfq = "out.fq"
+
+        result = runner.invoke(fastqconcat,
+                               ['--forward_fastq', fq1,
+                                '--reverse_fastq', fq2,
+                                '--outfile', outfq,
+                                '--keep_left', 310,
+                                '--keep_right', 310,
+                                '--ncpus', 1,
+                                '--discard'])
+
+        #output but no sequence
+        assert not result.exception
+        assert not os.path.exists(outfq)
+
+    with runner.isolated_filesystem():
+        outfq = "out.fq"
+
+        seq1f = randomfastq(name="seq1f", length=10)
+        seq1r = randomfastq(name="seq1r", length=10)
+
+        SeqIO.write(seq1f,"outf.fq","fastq")
+        SeqIO.write(seq1r,"outr.fq","fastq")
+
+        result = runner.invoke(fastqconcat,
+                               ['--forward_fastq', "outf.fq",
+                                '--reverse_fastq', "outr.fq",
+                                '--outfile', outfq,
+                                '--keep_left', 11,
+                                '--keep_right', 11,
+                                '--ncpus', 1,
+                                '--discard'])
+
+        #output but no sequence
+        assert not result.exception
+        assert not os.path.exists(outfq)
+
+
+
+
+
+
 
 
 def test_fastqconcat_spacers():
