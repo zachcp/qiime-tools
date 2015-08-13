@@ -13,5 +13,9 @@ def filter_by_length(fastafile, outputfasta, length):
     """
     from an input Fastafile, filter reads not matching the length parameter
     """
-    records = (rec for rec in SeqIO.parse(fastafile,'fasta') if len(rec.seq) == length)
-    SeqIO.write(records, outputfasta,'fasta')
+    with open(outputfasta, "w") as f:
+        for rec in SeqIO.parse(fastafile, 'fasta'):
+            if len(rec.seq) == length:
+                f.write(">{}\n{}\n".format(rec.id, rec.seq))
+    #records = (rec for rec in SeqIO.parse(fastafile,'fasta') if len(rec.seq) == length)
+    #SeqIO.write(records, outputfasta,'fasta')
