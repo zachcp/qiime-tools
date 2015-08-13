@@ -117,7 +117,7 @@ def test_fastqconcat_trimming():
         assert str(firstrecord) == str(fq1_first.seq)[:250] + str(fq2_first.seq)[:250]
 
 def test_fastqconcat_discard():
-    "When using a trim length greater thatn the sequence, discard the sequence"
+    "When using a trim length greater than the sequence, discard the sequence"
 
     nucleotides = ['A','C','T','G']
 

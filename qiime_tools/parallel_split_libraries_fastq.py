@@ -8,7 +8,7 @@ import glob
 import shutil
 
 import multiprocessing
-from subprocess import call
+from subprocess import call, check_call
 from functools import partial
 
 import click
@@ -53,10 +53,16 @@ def parallel_splitlibraries_fastq(fastq, barcode_fastq, outfile, mappingfile, ba
 
     #generate the split files nad check for length equivalency
     print("Splitting the Fastq File, {}".format(fastq))
-    call("cat {} | split -l {} - {}".format(fastq, splitsize,"forward_"),shell=True)
+    if isgzip(fastq):
+        call("zcat {} | split -l {} - {}".format(fastq, splitsize,"forward_"),shell=True)
+    else:
+        call("cat {} | split -l {} - {}".format(fastq, splitsize,"forward_"),shell=True)
 
     print("Splitting the Barcode Fastq File, {}".format(barcode_fastq))
-    call("cat {} | split -l {} - {}".format(barcode_fastq, splitsize,"barcode_"),shell=True)
+    if isgzip(barcode_fastq):
+        call("zcat {} | split -l {} - {}".format(barcode_fastq, splitsize,"barcode_"),shell=True)
+    else:
+        call("cat {} | split -l {} - {}".format(barcode_fastq, splitsize,"barcode_"),shell=True)
 
     #get the names of the split files and zip them together
     split_files_forward = sorted(glob.glob("forward_*"))

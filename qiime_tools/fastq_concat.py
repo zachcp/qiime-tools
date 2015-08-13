@@ -14,7 +14,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--forward_fastq', type=click.File('r'), prompt=True,help="name of the fastq forward file")
 @click.option('--reverse_fastq', type=click.File('r'), prompt=True, help="name of the fastq reverse file")
 @click.option('--outfile', type=click.File('w'), prompt=True, help="name of the output file")
-@click.option('--discard/--no-discard', default=False, help="trim reads where forward or reverse are shorter than kep_left or keep_right")
+@click.option('--discard/--no-discard', default=False, help="removes paired reads where forward or reverse are shorter than keep_left or keep_right")
 @click.option('--keep_left', type=click.INT, default=250, help="how much of the the forward reads should be kept.")
 @click.option('--keep_right', type=click.INT, default=175, help="how much of the reverse reads should be kept")
 @click.option('--ncpus',  type=click.INT, default=4, help="number of cpus to use. A little bit of parallelization \
@@ -87,13 +87,13 @@ def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, space
     if revcomp:
         #get reverse complement and invert the quality score
         #revcomp means the highquality data is now at the far end
-        #  so slicing will occur on the lef thand side counting form the right
+        #  so slicing will occur on the left hand side counting from the right
         rseq = str(Seq(rseq).reverse_complement())
         rqual = rqual[::-1]
 
         if spacer:
             newseq  = fseq[:keep_left] + spacercharacters + rseq[-keep_right:]
-            newqual = fqual[:keep_left] + "".join(["A" for char in spacercharacters]) + rqual[-keep_right:]
+            newqual = fqual[:keep_left] + "".join(["A" for _ in spacercharacters]) + rqual[-keep_right:]
 
         else:
             newseq  = fseq[:keep_left] + rseq[-keep_right:]
@@ -113,3 +113,10 @@ def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, space
 
 
         return "@%s\n%s\n+\n%s\n" % (ftitle, newseq, newqual)
+
+
+
+
+
+
+
