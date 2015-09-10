@@ -29,7 +29,7 @@ class PyTest(TestCommand):
 
 setup(
     name='qiime-tools',
-    version='0.2.16',
+    version='0.3.3',
     install_requires=[
         'Click >= 0.5.0',
         'Biopython >=1.6.5',
@@ -39,6 +39,7 @@ setup(
     entry_points='''
         [console_scripts]
         fastqconcat = qiime_tools.fastq_concat:fastqconcat
+        fastq_demultiplex = qiime_tools.demultiplex:demultiplex
         filterfasta_by_length = qiime_tools.filter_by_length:filter_by_length
         parallel_split_library_fastq = qiime_tools.parallel_split_libraries_fastq:parallel_splitlibraries_fastq
         parallel_split_libraries = qiime_tools.parallel_split_library:parallel_split_library

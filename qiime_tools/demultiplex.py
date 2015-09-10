@@ -11,7 +11,7 @@ from Bio.Seq import Seq
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
 @click.command()
-@click.option('--barcodefile', type=click.Path(), prompt=True,help="name of the fastq forward file")
+@click.option('--barcodefile', type=click.Path(exists=True), prompt=True,help="name of the fastq forward file")
 @click.option('--forward_fastq', type=click.File('r'), prompt=True,help="name of the fastq forward file")
 @click.option('--reverse_fastq', type=click.File('r'), prompt=True, help="name of the fastq reverse file")
 @click.option('--outdir', prompt=True, help="name of the output directory")
@@ -42,17 +42,25 @@ def demultiplex(barcodefile, forward_fastq, reverse_fastq, outdir, barcodelength
 
     #map the partial function across fastqpairs
     p = multiprocessing.Pool(ncpus)
+    results = p.imap(fastqfunc, fastqs)
 
-    results = p.map(fastqfunc, fastqs)
-
+    errorcount = 0
+    count = 0
     for result in results:
-        if result:
-            sample, fastqf, fastqr = result
-            assert(type(sample) == str)
-            with open("{}/{}_F.fq".format(outdir,sample),'wa') as ffq:
-                ffq.write(fastqf)
-            with open("{}/{}_R.fq".format(outdir,sample),'wa') as rfq:
-                rfq.write(fastqr)
+        count += 1
+        if result['match']:
+            sample = result['Sample']
+            f_out = "{}/{}_F.fq".format(outdir,sample)
+            r_out = "{}/{}_R.fq".format(outdir,sample)
+            #print(f_out,r_out)
+            with open(f_out,'wa') as ffq:
+                ffq.write(result['forwardstring'])
+            with open(r_out,'wa') as rfq:
+                rfq.write(result['reversestring'])
+        else:
+            errorcount += 1
+            print("Errorcount {}".format(errorcount))
+        print("Total count {}".format(count))
 
     print("Finished Demultiplexing")
 
@@ -67,12 +75,17 @@ def checkbarcode(fqs, barcodes, barcodelength, maxdistance):
     #get the barcode
     halfbarcode = barcodelength/2
     barcode = fseq[:halfbarcode] + rseq[:halfbarcode]
+    assert(len(barcode) == barcodelength)
+    #print(barcode)
 
     #check for perfect match first:
     match = None
+    #print(barcodes)
     for	sample, samplebarcodes in barcodes.iteritems():
+        print("sample:", sample, " barcode: ", samplebarcodes['Full'] )
         if samplebarcodes['Full'] == barcode:
             match = sample
+
 
     #if not choose closest
     if not match:
@@ -84,15 +97,19 @@ def checkbarcode(fqs, barcodes, barcodelength, maxdistance):
     if match:
         ffq = "@%s\n%s\n+\n%s\n" % (ftitle, fseq[halfbarcode:], fqual[halfbarcode:])
         rfq = "@%s\n%s\n+\n%s\n" % (rtitle, rseq[halfbarcode:], rqual[halfbarcode:])
-        return (match, ffq, rfq)
+        return {"match": True,
+                "Sample": match,
+                "forwardstring":ffq,
+                "reversestring": rfq}
     else:
-        return None
+        return {"match": False}
 
 
 def process_barcodefile(file, barcodelength):
     "Take a barcode file and return a nested dict of barcode info"
     data = {}
-    for idx, line in enumerate(open(file,'r')):
+    lines = open(file,'r').readlines()
+    for idx, line in enumerate(lines):
         if idx > 0:
             sample, forward, reverse = line.split()
             data[sample] = {"Forward": forward,
@@ -100,12 +117,13 @@ def process_barcodefile(file, barcodelength):
                             "Full": forward+reverse}
 
     #check data
+    assert(data != {})
     for k,v in data.iteritems():
         # check barcode lengths
         assert(len(v['Full']) == barcodelength)
 
-    return data
 
+    return data
 
 def hamdist(str1, str2):
    "Count the # of differences between equal length strings str1 and str2"
