@@ -29,7 +29,7 @@ class PyTest(TestCommand):
 
 setup(
     name='qiime-tools',
-    version='0.3.3',
+    version='0.3.5',
     install_requires=[
         'Click >= 0.5.0',
         'Biopython >=1.6.5',
