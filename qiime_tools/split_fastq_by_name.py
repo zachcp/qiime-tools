@@ -2,6 +2,7 @@ from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
 from builtins import zip
+import os
 
 import multiprocessing
 from functools import partial
@@ -20,14 +21,18 @@ def split_fastq_by_name(fastq,outdir):
 	"""
 	fastqs = SeqIO.parse(fastq, "fastq")
 
+	if not os.path.exists(outdir):
+		os.mkdir(outdir)
+
 	for fastq in fastqs:
 		#The record name is {{name}}_{{number}}
 		sample = fastq.name.split("_")[0]
 		outlocation = "{}/{}.fastq".format(outdir,sample)
 		qualscores = map(str,fastq.letter_annotations['phred_quality'])
 
+
 		with open(outlocation,'wa') as f:
 			f.write("@{}\n{}\n+\n{}".format(fastq.description,
 											fastq.seq,
-											" ".join(qualscores))
+											" ".join(qualscores)))
 	print("Splitting Complete")
