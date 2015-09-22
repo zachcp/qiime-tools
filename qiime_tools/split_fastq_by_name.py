@@ -31,7 +31,7 @@ def split_fastq_by_name(fastq,suffix, outdir):
 		outlocation = "{}/{}{}.fastq".format(outdir, sample, suffix)
 		qualscores = map(str,fastq.letter_annotations['phred_quality'])
 
-		print(sample, outlocation)
+		#print(sample, outlocation)
 		with open(outlocation,'wa') as f:
 			f.write("@{}\n{}\n+\n{}".format(fastq.description,
 											fastq.seq,
