@@ -21,7 +21,7 @@ def split_fastq_by_name(fastq,suffix, outdir):
     split a fastqfile based on the names in the header
 
     """
-    fastqs = FastqGeneralIterator(fastq, "fastq")
+    fastqs = FastqGeneralIterator(fastq)
 
 
     if not os.path.exists(outdir):
@@ -32,11 +32,9 @@ def split_fastq_by_name(fastq,suffix, outdir):
         header, sequence, quality = fastq
         sample = header.split("_")[0]
         outlocation = "{}/{}{}.fastq".format(outdir, sample, suffix)
-        qualscores = map(str,fastq.letter_annotations['phred_quality'])
-
         #print(sample, outlocation)
         with open(outlocation,'wa') as f:
-            f.write("@{}\n{}\n+\n{}".format(fastq.description,
-                                            fastq.seq,
-                                            " ".join(qualscores)))
+            f.write("@{}\n{}\n+\n{}".format(header,
+                                            sequence,
+                                            quality))
     print("Splitting Complete")
