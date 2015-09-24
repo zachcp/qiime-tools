@@ -33,7 +33,7 @@ def split_fastq_by_name(fastq,suffix, outdir):
         sample = header.split("_")[0]
         outlocation = "{}/{}{}.fastq".format(outdir, sample, suffix)
         #print(sample, outlocation)
-        with open(outlocation,'wa') as f:
+        with open(outlocation,'a') as f:
             f.write("@{}\n{}\n+\n{}".format(header,
                                             sequence,
                                             quality))
