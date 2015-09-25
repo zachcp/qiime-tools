@@ -34,7 +34,7 @@ def split_fastq_by_name(fastq,suffix, outdir):
         outlocation = "{}/{}{}.fastq".format(outdir, sample, suffix)
         #print(sample, outlocation)
         with open(outlocation,'a') as f:
-            f.write("@{}\n{}\n+\n{}".format(header,
+            f.write("@{}\n{}\n+\n{}\n".format(header,
                                             sequence,
                                             quality))
     print("Splitting Complete")
