@@ -81,7 +81,7 @@ def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, maxmismatches, ke
 
 
     handlerfunc = partial(process_fastqpair, barcodedict=barcodedict, barcodelength=barcodelength,
-                          max_mismach=maxmismatches, outdir=outdir, keepunassigned= keep_unassigned)
+                          max_mismatch=maxmismatches, outdir=outdir, keepunassigned= keep_unassigned)
 
     results = p.imap_unordered(handlerfunc, data)
 
