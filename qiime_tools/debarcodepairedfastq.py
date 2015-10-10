@@ -44,6 +44,8 @@ def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, maxmismatches, ke
     assert splitsize % 4 == 0
     if ncpus > 1:
         parallel = True
+    else:
+        parallel = False
 
     if parallel:
         print("Splitting the Forward Fastq File, {}".format(fqf))
