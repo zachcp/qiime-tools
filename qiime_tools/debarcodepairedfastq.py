@@ -70,28 +70,30 @@ def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, maxmismatches, ke
         data = (fqf, fqr, 1)
 
 
+    barcodedict = process_mappingfile(mappingfile, barcodelength)
+
     #process the split files in parallel using multiprocessing
     if parallel:
         print("Processing the Fastq Files in Parallel with {} cpus".format(ncpus))
-    else:
-        print("Processing the FastQ".format(ncpus))
-
-    p = multiprocessing.Pool(ncpus)
-    barcodedict = process_mappingfile(mappingfile, barcodelength)
-
-
-    handlerfunc = partial(process_fastqpair, barcodedict=barcodedict, barcodelength=barcodelength,
+        p = multiprocessing.Pool(ncpus)
+        handlerfunc = partial(process_fastqpair, barcodedict=barcodedict, barcodelength=barcodelength,
                           max_mismatch=maxmismatches, outdir=outdir, keepunassigned= keep_unassigned)
 
-    results = p.imap_unordered(handlerfunc, data)
+        results = p.imap_unordered(handlerfunc, data)
+        for r in results:
+            print(r)
 
-    for r in results:
-        print(r)
-
-    if parallel:
         print("cleaning up the split files....")
         p.imap(os.remove, split_files_forward)
         p.imap(os.remove, split_files_reverse)
+
+    else:
+        print("Processing the FastQ".format(ncpus))
+        process_fastqpair(fastqpair = data, barcodedict=barcodedict, barcodelength=barcodelength,
+                          max_mismatch=maxmismatches, outdir=outdir, keepunassigned= keep_unassigned)
+
+
+
 
 
 def process_mappingfile(mappingfile, barcodelength):
@@ -169,6 +171,8 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
                 f.write(">{}\n{}\n@\n{}".format(header, f_seq[blen:], f_qual[blen:]))
             with open(fqrout,'a') as f:
                 f.write(">{}\n{}\n@\n{}".format(header, r_seq[blen:], r_qual[blen:]))
+
+    return "File Processed"
 
 
 def hamdist(str1, str2):
