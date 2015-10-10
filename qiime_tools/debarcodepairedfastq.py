@@ -101,13 +101,14 @@ def process_mappingfile(mappingfile, barcodelength):
         return barcode: samplename dict
     """
     barcode_dict = {}
-    for line in open(mappingfile, 'r'):
-        linefields = line.strip().split()
-        samplename = linefields[0]
-        barcode = linefields[1]
-        print(samplename, barcode)
-        assert(len(barcode) == barcodelength)
-        barcode_dict[barcode] = samplename
+    for lino, line in enumerate(open(mappingfile, 'r')):
+        if lino > 1:
+            linefields = line.strip().split()
+            samplename = linefields[0]
+            barcode = linefields[1]
+            print(samplename, barcode)
+            assert(len(barcode) == barcodelength)
+            barcode_dict[barcode] = samplename
 
     return barcode_dict
 
