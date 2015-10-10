@@ -3,18 +3,14 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import zip
 
-
 import os
 import glob
-import shutil
-
+import click
 import multiprocessing
 from subprocess import call
 from functools import partial
 from collections import defaultdict
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
-
-import click
 
 @click.command()
 @click.option('--fqf', type=click.STRING, prompt=True,help="name of the fasta file")
@@ -68,11 +64,13 @@ def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, outdir, parallel,
 
         #get the names of the split files and zip them together
         split_files_forward = sorted(glob.glob("forward_*"))
-        split_files_barcode = sorted(glob.glob("barcode_*"))
-        split_files_outdir = ["out_{}".format(i) for i,x in enumerate(split_files_forward)]
+        split_files_reverse = sorted(glob.glob("barcode_*"))
         number_of_files= len(split_files_forward)
-        assert len(split_files_forward) == len(split_files_barcode)
-        data = zip(split_files_forward, split_files_barcode, split_files_outdir, list(range(number_of_files)))
+        assert len(split_files_forward) == len(split_files_reverse)
+        data = zip(split_files_forward, split_files_reverse, list(range(number_of_files)))
+    else:
+        data = zip(fqf, fqr, 1)
+
 
     #process the split files in parallel using multiprocessing
     if parallel:
@@ -81,43 +79,21 @@ def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, outdir, parallel,
         print("Processing the FastQ".format(ncpus))
 
     p = multiprocessing.Pool(ncpus)
+    barcodedict = process_mappingfile(mappingfile)
 
-    handlerfunc = partial(process_split_files, mappingdict=splitlibrarycommand,
-                          mappingfile=mappingfile, qual_cutoff=qual_cutoff, barcodetype=barcodetype,
-                          splitsize=splitsize, qualwindow=qualwindow, barcodeerrors=barcodeerrors
-                          #,discardbadwindows=discardbadwindows
-                          )
-    #make the output directories
-    for d in split_files_outdir:
-        os.mkdir(d)
-    #get your results
+
+    handlerfunc = partial(process_fastqpair, barcodedict=barcodedict, barcodelength=barcodelength,
+                          max_mismach=max_mismatch, outdir=outdir)
+
     results = p.imap_unordered(handlerfunc, data)
+
     for r in results:
         print(r)
 
-    print("cleaning up the split files....")
-    p.imap(os.remove, split_files_forward)
-    p.imap(os.remove, split_files_barcode)
-
-    print("Concatenating the histogram file to results to {}".format(logfile))
-    call("cat out_*/histograms.txt  > histograms.txt", shell=True)
-
-    print("Concatenating the results to {}".format(outfile))
-    call("cat out_*/seqs.fna > {}".format(outfile), shell=True)
-
-    print("Concatenating the log to results to {}".format(logfile))
-    call("cat out_*/split_library_log.txt  > {}".format(logfile), shell=True)
-
-    print("cleaning up the temporary files....")
-    p.map(shutil.rmtree	, split_files_outdir)
-
-    # check output filesize is not zero which will happen
-    # if something went wrong with the splitting step due to,say,
-    # an error with the mapping file
-    if os.path.getsize(outfile) == 0:
-        os.remove(outfile)
-        print("Error with Your process.. aborting...")
-        raise ValueError("Outputfile of size zero indicates an issues with your qiime setup")
+    if parallel:
+        print("cleaning up the split files....")
+        p.imap(os.remove, split_files_forward)
+        p.imap(os.remove, split_files_reverse)
 
 
 def process_mappingfile(mappingfile, barcodelength):
@@ -134,6 +110,8 @@ def process_mappingfile(mappingfile, barcodelength):
         assert(len(barcode) == barcodelength)
         barcode_dict[barcode] = samplename
 
+    return barcode_dict
+
 
 def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdir):
     """
@@ -149,6 +127,7 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
     fastq_r = FastqGeneralIterator(open(fqr,'r'))
     blen = barcodelength / 2
     sample = "Unassigned"
+
 
     for (f,r) in zip(fastq_f, fastq_r):
         f_name, f_seq, f_qual = f
