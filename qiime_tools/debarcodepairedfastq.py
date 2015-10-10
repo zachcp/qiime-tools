@@ -105,6 +105,7 @@ def process_mappingfile(mappingfile, barcodelength):
         linefields = line.strip().split()
         samplename = linefields[0]
         barcode = linefields[1]
+        print(samplename, barcode)
         assert(len(barcode) == barcodelength)
         barcode_dict[barcode] = samplename
 
