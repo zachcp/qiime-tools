@@ -109,7 +109,7 @@ def process_mappingfile(mappingfile, barcodelength):
             linefields = line.strip().split()
             samplename = linefields[0]
             barcode = linefields[1]
-            print(samplename, barcode)
+            #print(samplename, barcode)
             assert(len(barcode) == barcodelength)
             barcode_dict[barcode] = samplename
 
@@ -140,7 +140,7 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
     for (f,r) in zip(fastq_f, fastq_r):
         f_name, f_seq, f_qual = f
         r_name, r_seq, r_qual = r
-        barcode = f_seq[:blen] = r_seq[:blen]
+        barcode = f_seq[:blen] + r_seq[:blen]
 
         sample = "Unassigned"
         mod_barcode = None
