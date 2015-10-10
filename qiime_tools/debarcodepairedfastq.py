@@ -130,7 +130,7 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
         fastq_f = FastqGeneralIterator(gzip.open(fqf, 'r'))
     else:
         fastq_f = FastqGeneralIterator(open(fqf, 'r'))
-    if isgzip(frq):
+    if isgzip(fqr):
         fastq_r = FastqGeneralIterator(gzip.open(fqr,'r'))
     else:
         fastq_r = FastqGeneralIterator(open(fqr,'r'))
