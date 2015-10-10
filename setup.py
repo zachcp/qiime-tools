@@ -29,7 +29,7 @@ class PyTest(TestCommand):
 
 setup(
     name='qiime-tools',
-    version='0.4.2',
+    version='0.4.4',
     install_requires=[
         'Click >= 0.5.0',
         'Biopython >=1.6.5',
@@ -38,6 +38,7 @@ setup(
     packages=find_packages(),
     entry_points='''
         [console_scripts]
+        debarcodepairedfastq = qiime_tools.debarcodepairedfastq:debarcodepairedfastq
         split_fastq_by_name = qiime_tools.split_fastq_by_name:split_fastq_by_name
         fastqconcat = qiime_tools.fastq_concat:fastqconcat
         fastq_demultiplex = qiime_tools.demultiplex:demultiplex
