@@ -5,6 +5,7 @@ from builtins import zip
 
 import os
 import glob
+import gzip
 import click
 import multiprocessing
 from subprocess import call
@@ -125,8 +126,15 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
     :return:
     """
     fqf, fqr, num = fastqpair
-    fastq_f = FastqGeneralIterator(open(fqf, 'r'))
-    fastq_r = FastqGeneralIterator(open(fqr,'r'))
+    if isgzip(fqf):
+        fastq_f = FastqGeneralIterator(gzip.open(fqf, 'r'))
+    else:
+        fastq_f = FastqGeneralIterator(open(fqf, 'r'))
+    if isgzip(frq):
+        fastq_r = FastqGeneralIterator(gzip.open(fqr,'r'))
+    else:
+        fastq_r = FastqGeneralIterator(open(fqr,'r'))
+
     blen = barcodelength / 2
 
     for (f,r) in zip(fastq_f, fastq_r):
