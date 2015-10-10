@@ -67,7 +67,7 @@ def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, maxmismatches, ke
         assert len(split_files_forward) == len(split_files_reverse)
         data = zip(split_files_forward, split_files_reverse, list(range(number_of_files)))
     else:
-        data = zip(fqf, fqr, 1)
+        data = (fqf, fqr, 1)
 
 
     #process the split files in parallel using multiprocessing
@@ -120,7 +120,7 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
     :param max_mismatch:
     :return:
     """
-    fqf, fqr = fastqpair
+    fqf, fqr, num = fastqpair
     fastq_f = FastqGeneralIterator(open(fqf, 'r'))
     fastq_r = FastqGeneralIterator(open(fqr,'r'))
     blen = barcodelength / 2
@@ -154,9 +154,9 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
                         mod_barcode = barcodelist[0]
 
         if mod_barcode:
-            header = "{} Barcode:{} ModifiedBarcode:{}".format(sample, barcode, mod_barcode)
+            header = "{} OrigID:{} Barcode:{} ModifiedBarcode:{}".format(sample, f_name, barcode, mod_barcode)
         else:
-            header = "{} Barcode:{} ModifiedBarcode:{}".format(sample, barcode, barcode)
+            header = "{} OrigID:{} Barcode:{} ModifiedBarcode:{}".format(sample, r_name, barcode, barcode)
 
         if (keepunassigned == False) and (sample == "Unassigned"):
             pass
