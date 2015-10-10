@@ -13,16 +13,16 @@ from collections import defaultdict
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
 @click.command()
-@click.option('--fqf', type=click.STRING, prompt=True,help="name of the fasta file")
-@click.option('--fqr', type=click.STRING, prompt=True,help="name of the quality file")
-@click.option('--barcodelength', type=click.INT, prompt=True,help="name of the quality file")
+@click.option('--fqf', type=click.STRING, prompt=True,help="name of the forward fastq file")
+@click.option('--fqr', type=click.STRING, prompt=True,help="name of the reverse fastq file")
+@click.option('--barcodelength', type=click.INT, prompt=True,help="assumed a barcode length")
 @click.option('--mappingfile', type=click.STRING, prompt=True, help="name of the Qiime mapping file")
-@click.option('--maxmismatches', type=click.INT, default=1, help="name of the Qiime mapping file")
-@click.option('--keep_unassigned', default=False, help="name of the Qiime mapping file")
+@click.option('--maxmismatches', type=click.INT, default=1, help="maximum mismatches between barcode and sample barcode")
+@click.option('--keep_unassigned/--no-keep_unassigned', default=False, help="Keep Unasigned Samples")
 @click.option('--outdir', type=click.STRING, prompt=True, help="name of the output dir")
-@click.option('--splitsize', type=click.INT, default = 1000000, help="name of the output dir")
-@click.option('--ncpus', type=click.INT, default=1, help="name of the output dir")
-def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, outdir, parallel,splitsize, ncpus):
+@click.option('--splitsize', type=click.INT, default = 1000000, help="number of lines to split on")
+@click.option('--ncpus', type=click.INT, default=1, help="number of CPUs to use")
+def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, maxmismatches, keep_unassigned, outdir ,splitsize, ncpus):
     """
 
     A simple debarcoding script aimed at the following specific use case:
@@ -42,10 +42,6 @@ def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, outdir, parallel,
      quality scores.
     """
     assert splitsize % 4 == 0
-
-    # generate the split files and check for length equivalency.
-    # note that the fasta and qual files are piped through seqtk to make both filetypes into
-    # two-line files.
     if ncpus > 1:
         parallel = True
 
@@ -79,11 +75,11 @@ def debarcodepairedfastq(fqf, fqr, barcodelength, mappingfile, outdir, parallel,
         print("Processing the FastQ".format(ncpus))
 
     p = multiprocessing.Pool(ncpus)
-    barcodedict = process_mappingfile(mappingfile)
+    barcodedict = process_mappingfile(mappingfile, barcodelength)
 
 
     handlerfunc = partial(process_fastqpair, barcodedict=barcodedict, barcodelength=barcodelength,
-                          max_mismach=max_mismatch, outdir=outdir)
+                          max_mismach=max_mismatch, outdir=outdir, keepunassigned= keep_unassigned)
 
     results = p.imap_unordered(handlerfunc, data)
 
@@ -113,7 +109,7 @@ def process_mappingfile(mappingfile, barcodelength):
     return barcode_dict
 
 
-def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdir):
+def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdir, keepunassigned):
     """
 
     :param fastqpair:
@@ -126,13 +122,13 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
     fastq_f = FastqGeneralIterator(open(fqf, 'r'))
     fastq_r = FastqGeneralIterator(open(fqr,'r'))
     blen = barcodelength / 2
-    sample = "Unassigned"
-
 
     for (f,r) in zip(fastq_f, fastq_r):
         f_name, f_seq, f_qual = f
         r_name, r_seq, r_qual = r
         barcode = f_seq[:blen] = r_seq[:blen]
+
+        sample = "Unassigned"
         mod_barcode = None
 
         # check for a perfect match
@@ -155,18 +151,20 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
                     if len(barcodelist) == 1:
                         mod_barcode = barcodelist[0]
 
-        fqfout = "{}/{}_F.fastq".format(outdir, sample)
-        fqrout = "{}/{}_R.fastq".format(outdir, sample)
-
         if mod_barcode:
             header = "{} Barcode:{} ModifiedBarcode:{}".format(sample, barcode, mod_barcode)
         else:
             header = "{} Barcode:{} ModifiedBarcode:{}".format(sample, barcode, barcode)
 
-        with open(fqfout,'a') as f:
-            f.write(">{}\n{}\n@\n{}".format(header, f_seq[blen:], f_qual[blen:]))
-        with open(fqrout,'a') as f:
-            f.write(">{}\n{}\n@\n{}".format(header, r_seq[blen:], r_qual[blen:]))
+        if (keepunassigned == False) and (sample == "Unassigned"):
+            pass
+        else:
+            fqfout = "{}/{}_F.fastq".format(outdir, sample)
+            fqrout = "{}/{}_R.fastq".format(outdir, sample)
+            with open(fqfout,'a') as f:
+                f.write(">{}\n{}\n@\n{}".format(header, f_seq[blen:], f_qual[blen:]))
+            with open(fqrout,'a') as f:
+                f.write(">{}\n{}\n@\n{}".format(header, r_seq[blen:], r_qual[blen:]))
 
 
 def hamdist(str1, str2):
