@@ -176,9 +176,9 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
             fqfout = "{}/{}_F.fastq".format(outdir, sample)
             fqrout = "{}/{}_R.fastq".format(outdir, sample)
             with open(fqfout,'a') as f:
-                f.write("@{}\n{}\n+\n{}".format(header, f_seq[blen:], f_qual[blen:]))
+                f.write("@{}\n{}\n+\n{}\n".format(header, f_seq[blen:], f_qual[blen:]))
             with open(fqrout,'a') as f:
-                f.write("@{}\n{}\n+\n{}".format(header, r_seq[blen:], r_qual[blen:]))
+                f.write("@{}\n{}\n+\n{}\n".format(header, r_seq[blen:], r_qual[blen:]))
 
     return "File Processed"
 
