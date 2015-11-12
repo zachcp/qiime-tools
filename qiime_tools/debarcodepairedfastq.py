@@ -106,6 +106,7 @@ def process_mappingfile(mappingfile, barcodelength):
     barcode_dict = {}
     for lino, line in enumerate(open(mappingfile, 'r')):
         if lino > 1:
+            print line
             linefields = line.strip().split()
             samplename = linefields[0]
             barcode = linefields[1]
@@ -158,7 +159,7 @@ def process_fastqpair(fastqpair, barcodedict, barcodelength, max_mismatch, outdi
                 dist = hamdist(k, barcode)
                 hammingdists[dist].append(v)
             if min(hammingdists) <= max_mismatch:
-                possible_samples  = hammingdists[min(hammingdists)]
+                possible_samples = hammingdists[min(hammingdists)]
                 if len(possible_samples) == 1:
                     sample = possible_samples[0]
                     barcodelist = [k for k in hammingdists if sample in hammingdists[k]]

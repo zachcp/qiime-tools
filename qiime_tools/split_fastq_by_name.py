@@ -27,9 +27,9 @@ def split_fastq_by_name(fastq,suffix, outdir):
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
-    for fastq in fastqs:
+    for fq in fastqs:
         #The record name is {{name}}_{{number}}
-        header, sequence, quality = fastq
+        header, sequence, quality = fq
         sample = header.split("_")[0]
         outlocation = "{}/{}{}.fastq".format(outdir, sample, suffix)
         #print(sample, outlocation)
