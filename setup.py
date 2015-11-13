@@ -29,7 +29,7 @@ class PyTest(TestCommand):
 
 setup(
     name='qiime-tools',
-    version='0.4.6',
+    version='0.4.7',
     install_requires=[
         'Click >= 0.5.0',
         'Biopython >=1.6.5',
@@ -47,7 +47,7 @@ setup(
         parallel_split_libraries = qiime_tools.parallel_split_library:parallel_split_library
         UCfiles_to_taxtable = qiime_tools.UCfiles_to_taxtable:UCfiles_to_taxtable
         taxtable_to_otutable = qiime_tools.UCfiles_to_taxtable:taxtable_to_otutable
-        merge_OTU_UC = qiime_tools.merge_OTU_UC:merge_OTU_UCfile
+        merge_OTU_UC = qiime_tools.mergeOTU_UC:merge_OTU_UCfile
     ''',
     test_requirements = ['pytest>=2.1'],
     tests_require=['pytest'],
