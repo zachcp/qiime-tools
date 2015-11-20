@@ -24,7 +24,8 @@ def merge_OTU_UCfile(otufilename, ucfilename, outfile):
 
 	# the index values of the otutable should match exactly the
 	# query values of the output
-	assert(set(otus.index) == set(uc_data['query']))
+	assert(len(set(otus.index).difference(set(uc_data['query']))) == 0)
+	#assert(set(otus.index) == set(uc_data['query']))
 
 	mdf = pd.merge(otus, uc_data, on="query", how="left")
 	mdf = mdf.set_index("query")
