@@ -27,7 +27,7 @@ def merge_OTU_UCfile(otufilename, ucfilename, outfile):
 	assert(len(set(otus.index).difference(set(uc_data['query']))) == 0)
 	#assert(set(otus.index) == set(uc_data['query']))
 
-	mdf = pd.merge(otus, uc_data, on="query", how="left")
+	mdf = pd.merge(otus, uc_data, left_index = True, right_on="query", how="left")
 	mdf = mdf.set_index("query")
 	mdf = mdf.groupby("target").apply(returntopsums)
 	mdf = mdf.reset_index().drop('query', axis=1).set_index('target')
