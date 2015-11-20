@@ -31,7 +31,7 @@ def merge_OTU_UCfile(otufilename, ucfilename, outfile):
 	mdf = mdf.set_index("query")
 	mdf = mdf.groupby("target").apply(returntopsums)
 	mdf = mdf.reset_index().drop('query', axis=1).set_index('target')
-	mdf.to_csv(outfile)
+	mdf.to_csv(outfile, sep="\t")
 
 
 def load_ucfile(filename):
