@@ -18,7 +18,7 @@ def merge_OTU_UCfile(otufilename, ucfilename, outfile):
 
 	#load/process the OTUS and UC data
 	otus = pd.read_table(otufilename)
-	otus = otus.T
+	#otus = otus.T
 	#otus = fixindex(otus)
 	uc_data = process_uc(ucfilename)
 
