@@ -18,7 +18,9 @@ def merge_OTU_UCfile(otufilename, ucfilename, outfile):
 
 	#load/process the OTUS and UC data
 	otus = pd.read_table(otufilename)
-	#otus = otus.T
+	#handle otu files that have already been clustered
+	if otus.index[0] == 'target':
+		otus = otus.set_index('target')
 	#otus = fixindex(otus)
 	uc_data = process_uc(ucfilename)
 
