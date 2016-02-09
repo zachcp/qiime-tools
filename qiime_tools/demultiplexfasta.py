@@ -77,7 +77,7 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
     for result in fastasizetruncated:
         #sampledata
-        #print(result)
+        print(result)
         forward_id   = result['forward_id']
         forward_desc = result["forward_desc"]
         forward_seq  = result["forward_sequence"]
@@ -163,6 +163,7 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     #update values
     fastadict['sample'] = samplematch
     fastadict['barcode'] = barcode
+    fastadict['barcode_distance'] = hdist
     fastadict['forward_sequence'] = fseq[halfbarcode:]
     fastadict['reverse_sequence'] = rseq[halfbarcode:]
     return fastadict
