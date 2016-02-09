@@ -146,8 +146,8 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
 
     #if not choose closest
     if not samplematch:
-        for	sample, samplebarcodes in barcodedict.items():
-            hdist = hamdist(samplebarcodes['Full'], barcode)
+        for	sample, samplebarcode in barcodedict.items():
+            hdist = hamdist(samplebarcode, barcode)
             if hdist <= maxdistance:
                 samplematch = sample
 
@@ -172,21 +172,19 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
 
 
 def process_barcodefile(file, barcodelength):
-    "Take a barcode file and return a nested dict of barcode info"
+    "Take a barcode file and return the barcode"
     data = {}
     lines = open(file,'r').readlines()
     for idx, line in enumerate(lines):
         if idx > 0:
-            sample, forward, reverse = line.split()
-            data[sample] = {"Forward": forward,
-                            "Reverse": reverse,
-                            "Full": forward+reverse}
+            sample, barcode, *othercols = line.split()
+            data[sample] = barcode
 
     #check data
     assert(data != {})
     for k,v in data.items():
         # check barcode lengths
-        assert(len(v['Full']) == barcodelength)
+        assert(len(v) == barcodelength)
 
     return data
 
