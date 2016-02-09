@@ -11,7 +11,7 @@ import click
 @click.option('--fastafile', type=click.File('r'), prompt=True,help="name of the fasta file")
 @click.option('--outdir', prompt=True, help="name of the output directory")
 @click.option('--deletedir/--no-deletedir', default=False, help="whether or not to delete the directory")
-def split_fastq_by_name(fastafile,outdir, deletedir):
+def split_fasta_by_name(fastafile,outdir, deletedir):
     """
     split a fastqfile based on the names in the header
 
