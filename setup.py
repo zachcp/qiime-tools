@@ -29,11 +29,10 @@ class PyTest(TestCommand):
 
 setup(
     name='qiime-tools',
-    version='0.4.8',
+    version='0.4.9',
     install_requires=[
-        'Click >= 0.5.0',
+        'Click >= 0.6.0',
         'Biopython >=1.6.5',
-        'qiime >=1.9.0'
     ],
     packages=find_packages(),
     entry_points='''
@@ -48,6 +47,7 @@ setup(
         UCfiles_to_taxtable = qiime_tools.UCfiles_to_taxtable:UCfiles_to_taxtable
         taxtable_to_otutable = qiime_tools.UCfiles_to_taxtable:taxtable_to_otutable
         merge_OTU_UC = qiime_tools.mergeOTU_UC:merge_OTU_UCfile
+        demultiplex_fastq = qiime_tools.demultiplexfasta:demultiplex
     ''',
     test_requirements = ['pytest>=2.1'],
     tests_require=['pytest'],

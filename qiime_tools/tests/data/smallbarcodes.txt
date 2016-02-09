@@ -1,0 +1,2 @@
+#SampleID	Forward Reverse
+Sample1 AAAA    AAAA
