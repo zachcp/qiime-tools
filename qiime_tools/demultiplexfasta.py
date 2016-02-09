@@ -77,7 +77,7 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
     for result in fastasizetruncated:
         #sampledata
-        print(result)
+        #print(result)
         forward_id   = result['forward_id']
         forward_desc = result["forward_desc"]
         forward_seq  = result["forward_sequence"]
