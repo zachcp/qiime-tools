@@ -1,18 +1,12 @@
-# content of test_sample.py
+# content of test_demultiplexfasta.py.py
 """
 This file tests the demultiplexfasta script. demutiplexfasta two fastqfiles and outputs a fastafile where samples
 have been labelled by sample id.
 
 """
 import os
-import random
-
-from fastq_paired_demultiplex.demultiplexfasta import demultiplex
+from qiime_tools.demultiplexfasta import demultiplex, process_barcodefile
 from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import generic_dna
-
 from click.testing import CliRunner
 
 
@@ -37,11 +31,15 @@ def test_sequences():
     assert len(recs_F) == 4
     assert len(recs_R) == 4
 
+def test_process_barcodefile():
+    barcodes = process_barcodefile(barcodesfile, 8)
+    assert(barcodes["Sample1"] == "AAAAAAAA")
+
 def test_demultiplexfasta_basic():
     "run fastqconcat and check that the sequences have been concatenated."
     runner=CliRunner()
     with runner.isolated_filesystem():
-        outfasta = "out.fasta"
+        outfasta   = "out.fasta"
         outlogfile = "out.log"
         result = runner.invoke(demultiplex,
                                ['--forward_fasta', fna1,
@@ -50,20 +48,54 @@ def test_demultiplexfasta_basic():
                                 '--barcodelength', 8,
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
-                                '--maxmismatches', 1,
                                 '--trimsize_forward', 5,
-                                '--trimsize_reverse', 5,
-                                '--includeshort',
-                                '--spacersequence', "NNNNN",
-                                '--sampleindex', 1])
+                                '--trimsize_reverse', 5])
 
         #assert the output is the correct length and sequence
-        #assert not result.exception
         assert result.exit_code == 0
+        assert set(os.listdir(".")) == set(["out.log","out.fasta"])
         records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
         assert len(records) == 4
-        #firstrecord = next(SeqIO.parse(open(outfq,'r'),'fastq')).seq
-        #assert len(firstrecord) == 602
-        #assert str(firstrecord) == str(fq1_first.seq) + str(fq2_first.seq)
-        #assert str(firstrecord) == str(fq1_first.seq) + str(fq2_first.seq)
 
+
+def test_demultiplexfasta_trimsize():
+    "trimming on longer sequences should eliminate one but can be retained by --includeshort"
+    runner=CliRunner()
+    with runner.isolated_filesystem():
+        outfasta   = "out.fasta"
+        outlogfile = "out.log"
+        result = runner.invoke(demultiplex,
+                               ['--forward_fasta', fna1,
+                                '--reverse_fasta', fna2,
+                                '--barcodefile', barcodesfile,
+                                '--barcodelength', 8,
+                                '--outfile', outfasta,
+                                '--logfile', outlogfile,
+                                '--trimsize_forward', 30,
+                                '--trimsize_reverse', 30])
+
+        #assert the output is the correct length and sequence
+        assert result.exit_code == 0
+        assert set(os.listdir(".")) == set(["out.log","out.fasta"])
+        records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
+        assert len(records) == 3
+
+    with runner.isolated_filesystem():
+        outfasta   = "out.fasta"
+        outlogfile = "out.log"
+        result = runner.invoke(demultiplex,
+                               ['--forward_fasta', fna1,
+                                '--reverse_fasta', fna2,
+                                '--barcodefile', barcodesfile,
+                                '--barcodelength', 8,
+                                '--outfile', outfasta,
+                                '--logfile', outlogfile,
+                                '--trimsize_forward', 30,
+                                '--trimsize_reverse', 30,
+                                '--includeshort'])
+
+        #assert the output is the correct length and sequence
+        assert result.exit_code == 0
+        assert set(os.listdir(".")) == set(["out.log","out.fasta"])
+        records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
+        assert len(records) == 4

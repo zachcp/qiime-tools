@@ -24,7 +24,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--max_mismatches', type=click.INT, default=1, help="maximum difference between sequence and barcode")
 @click.option('--trimsize_forward',type=click.INT, default=1000)
 @click.option('--trimsize_reverse',type=click.INT, default=1000)
-@click.option('--includeshort/--no-includeshort', default=True)
+@click.option('--includeshort/--no-includeshort', default=False)
 @click.option('--spacersequence', default="NNNNNNNNNN")
 @click.option('--sampleindex', type=click.INT, default=1)
 def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
@@ -95,12 +95,18 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
         if not sample: badbarcodecount += 1
         if tooshort: tooshortcount += 1
 
-        #fastaoutput
-        if sample and not tooshort:
+        #write sample
+        def writesample():
             allseq = forward_seq + spacersequence + reversecomplement(reverse_seq)
             fastaheader = "{}_{}_{:06d} barcode:{} barcodemismatches:{}".format(
                 sample, forward_id, count, barcode, brcd_dist)
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
+
+        #ignore short sequences
+        if includeshort is False and tooshort:
+            pass
+        else:
+            writesample()
 
     # write out log information
     logfile.write("""
@@ -139,9 +145,8 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     barcode =  fastadict['forward_sequence'][:halfbarcode] + fastadict['reverse_sequence'][:halfbarcode]
 
     #check for perfect match first:
-    for	sample, samplebarcodes in barcodedict.items():
-        print("sample:", sample, " barcode: ", samplebarcodes['Full'] )
-        if samplebarcodes['Full'] == barcode:
+    for	sample, samplebarcode in barcodedict.items():
+        if samplebarcode == barcode:
             samplematch = sample
 
     #if not choose closest
@@ -177,7 +182,11 @@ def process_barcodefile(file, barcodelength):
     lines = open(file,'r').readlines()
     for idx, line in enumerate(lines):
         if idx > 0:
-            sample, barcode, *othercols = line.split()
+            try:
+                sample, barcode  = line.split()
+            except:
+                sample, barcode, *othercols = line.split()
+
             data[sample] = barcode
 
     #check data
