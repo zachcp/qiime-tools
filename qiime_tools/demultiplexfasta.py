@@ -4,8 +4,8 @@
 #from builtins import zip
 
 import multiprocessing
-# from toolz.dicttoolz import assoc
-# from toolz.functoolz import thread_first
+from toolz.dicttoolz import assoc
+from toolz.functoolz import thread_first
 from functools import partial
 from collections import defaultdict
 
@@ -161,12 +161,17 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
                 samplematch = sample
 
     #update values
-    fastadict['sample'] = samplematch
-    fastadict['barcode'] = barcode
-    fastadict['barcode_distance'] = hdist
-    fastadict['forward_sequence'] = fseq[halfbarcode:]
-    fastadict['reverse_sequence'] = rseq[halfbarcode:]
-    return fastadict
+    #fastadict['sample'] = samplematch
+    #fastadict['barcode'] = barcode
+    #fastadict['barcode_distance'] = hdist
+    #fastadict['forward_sequence'] = fseq[halfbarcode:]
+    #fastadict['reverse_sequence'] = rseq[halfbarcode:]
+    return thread_first(fastadict,
+                        (assoc, "sample", samplematch),
+                        (assoc, "barcode", barcode),
+                        (assoc, "barcode_distance", hdist),
+                        (assoc, "forward_sequence", fseq[halfbarcode:]),
+                        (assoc, "reverse_sequence", rseq[halfbarcode:]))
 
 def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
     "subset sequence and indicate if short"
@@ -181,7 +186,10 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
     fastadict['tooshort'] = tooshort
     fastadict['foward_sequence']  = fseq[:trimsize_forward]
     fastadict['reverse_sequence'] = rseq[:trimsize_reverse]
-    return fastadict
+    return thread_first(fastadict,
+                        (assoc, "tooshort", tooshort),
+                        (assoc, "forward_sequence", fseq[:trimsize_forward]),
+                        (assoc, "reverse_distance", rseq[:trimsize_reverse]))
 
 
 def process_barcodefile(file, barcodelength):

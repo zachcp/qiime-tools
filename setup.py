@@ -33,6 +33,7 @@ setup(
     install_requires=[
         'Click >= 0.6.0',
         'Biopython >=1.6.5',
+        'cytoolz'
     ],
     packages=find_packages(),
     entry_points='''
