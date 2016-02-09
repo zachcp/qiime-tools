@@ -77,13 +77,13 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
     for result in fastasizetruncated:
         #sampledata
-        print(result)
+        #print(result)
         forward_id   = result['forward_id']
         forward_desc = result["forward_desc"]
-        forward_seq  = result["forward_sequence"][barcodelength:]
+        forward_seq  = result["forward_sequence"]
         reverse_id   = result["reverse_id"]
         reverse_desc = result["reverse_desc"]
-        reverse_seq  = result["reverse_sequence"][barcodelength:]
+        reverse_seq  = result["reverse_sequence"]
         sample       = result["sample"]
         barcode      = result["barcode"]
         brcd_dist    = result["barcode_distance"]
@@ -102,11 +102,12 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
                 sample, forward_id, count, barcode, brcd_dist)
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
 
-        #ignore short sequences
-        if includeshort is False and tooshort:
-            pass
-        else:
-            writesample()
+        #ignore non assigned and too short sequences
+        if sample:
+            if includeshort is False and tooshort:
+                pass
+            else:
+                writesample()
 
     # write out log information
     logfile.write("""
@@ -142,7 +143,9 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     samplematch = None
     hdist = 0
     halfbarcode = int(barcodelength/2)
-    barcode =  fastadict['forward_sequence'][:halfbarcode] + fastadict['reverse_sequence'][:halfbarcode]
+    fseq = fastadict['forward_sequence']
+    rseq = fastadict['reverse_sequence']
+    barcode = fseq[:halfbarcode] + rseq[:halfbarcode]
 
     #check for perfect match first:
     for	sample, samplebarcode in barcodedict.items():
@@ -159,7 +162,8 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     #update values
     fastadict['sample'] = samplematch
     fastadict['barcode'] = barcode
-    fastadict['barcode_distance'] = hdist
+    fastadict['barcode_distance'] = fseq[halfbarcode:]
+    fastadict['forward_sequence'] = rseq[halfbarcode:]
     return fastadict
 
 def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
@@ -173,6 +177,8 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
         tooshort= True
 
     fastadict['tooshort'] = tooshort
+    fastadict['foward_sequence']  = fseq[:trimsize_forward]
+    fastadict['reverse_sequence'] = rseq[:trimsize_reverse]
     return fastadict
 
 
