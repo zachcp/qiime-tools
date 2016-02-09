@@ -100,6 +100,7 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
             allseq = forward_seq + spacersequence + reversecomplement(reverse_seq)
             fastaheader = "{}_{}_{:06d} barcode:{} barcodemismatches:{}".format(
                 sample, forward_id, count, barcode, brcd_dist)
+
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
 
         #ignore non assigned and too short sequences
@@ -162,8 +163,8 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     #update values
     fastadict['sample'] = samplematch
     fastadict['barcode'] = barcode
-    fastadict['barcode_distance'] = fseq[halfbarcode:]
-    fastadict['forward_sequence'] = rseq[halfbarcode:]
+    fastadict['forward_sequence'] = fseq[halfbarcode:]
+    fastadict['reverse_sequence'] = rseq[halfbarcode:]
     return fastadict
 
 def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
