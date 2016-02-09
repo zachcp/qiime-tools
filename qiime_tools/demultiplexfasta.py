@@ -4,8 +4,8 @@
 #from builtins import zip
 
 import multiprocessing
-from toolz.dicttoolz import assoc
-from toolz.functoolz import thread_first
+from cytoolz.dicttoolz import assoc
+from cytoolz.functoolz import thread_first
 from functools import partial
 from collections import defaultdict
 
