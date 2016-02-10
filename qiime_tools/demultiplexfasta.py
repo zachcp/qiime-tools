@@ -3,12 +3,16 @@
 #standard_library.install_aliases()
 #from builtins import zip
 
+from collections import defaultdict
+import glob
+import multiprocessing
+import os
+from subprocess import call
+
+from Bio import SeqIO
+import click
 from cytoolz.dicttoolz import assoc
 from cytoolz.functoolz import thread_first
-from collections import defaultdict
-import click
-from Bio import SeqIO
-from functools import partial
 
 
 @click.command()
@@ -25,8 +29,9 @@ from functools import partial
 @click.option('--spacersequence', default="NNNNNNNNNN")
 @click.option('--sampleindex', type=click.INT, default=1)
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
+@click.option('--ncpus', type=click.INT, default=2, help="cpus to use")
 def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
-                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize):
+                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize,ncpus):
     """
     A wrapper for `demultiplex`. Splitting the input fasta fiel and
     does the work on the pieces
@@ -104,7 +109,7 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
 
     print("cleaning up the split files....")
     p.imap(os.remove, split_files_forward)
-    p.imap(os.remove, split_files_barcode)
+    p.imap(os.remove, split_files_reverse)
 
 
     print("Concatenating the results to {}".format(outfile))
