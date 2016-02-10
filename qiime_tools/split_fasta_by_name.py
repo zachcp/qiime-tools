@@ -26,7 +26,7 @@ def split_fasta_by_name(fastafile,outdir, deletedir):
     records = SeqIO.parse(fastafile,'fasta')
 
     for rec in records:
-        sample = rec.id("_")[0]
+        sample = rec.id.split("_")[0]
         outlocation = "{}/{}.fasta".format(outdir, sample)
         with open(outlocation,'a') as f:
             f.write(">{} {}\n{}\n".format(rec.id, rec.description, str(rec.seq)))
