@@ -3,16 +3,129 @@
 #standard_library.install_aliases()
 #from builtins import zip
 
-import multiprocessing
 from cytoolz.dicttoolz import assoc
 from cytoolz.functoolz import thread_first
-from functools import partial
 from collections import defaultdict
-
 import click
 from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqIO.QualityIO import FastqGeneralIterator
+from functools import partial
+
+
+@click.command()
+@click.option('--forward_fasta', type=click.File('r'), prompt=True,help="name of the fasta forward file")
+@click.option('--reverse_fasta', type=click.File('r'), prompt=True, help="name of the fasta reverse file")
+@click.option('--barcodefile', type=click.Path(exists=True), prompt=True,help="name of the barcode file")
+@click.option('--barcodelength', type=click.INT, prompt=True, help="how long is the barcode")
+@click.option('--outfile', type=click.File('w'), prompt=True, help="output fasta file")
+@click.option('--logfile', type=click.File('w'), prompt=True, help="output log file")
+@click.option('--max_mismatches', type=click.INT, default=1, help="maximum difference between sequence and barcode")
+@click.option('--trimsize_forward',type=click.INT, default=1000)
+@click.option('--trimsize_reverse',type=click.INT, default=1000)
+@click.option('--includeshort/--no-includeshort', default=False)
+@click.option('--spacersequence', default="NNNNNNNNNN")
+@click.option('--sampleindex', type=click.INT, default=1)
+@click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
+def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
+                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize):
+    """
+    A wrapper for `demultiplex`. Splitting the input fasta fiel and
+    does the work on the pieces
+
+    :param forward_fasta:
+    :param reverse_fasta:
+    :param barcodefile:
+    :param barcodelength:
+    :param outfile:
+    :param logfile:
+    :param max_mismatches:
+    :param trimsize_forward:
+    :param trimsize_reverse:
+    :param includeshort:
+    :param spacersequence:
+    :param sampleindex:
+    :return:
+    """
+
+    def makecallstring(forward_fasta,reverse_fasta, barcodefile,barcodelength,
+                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse):
+        return """
+        demultiplexfasta \
+                --forward_fasta  {} \
+                --reverse_fasta  {} \
+                --barcodefile    {} \
+                --barcodelength  {} \
+                --outfile        {} \
+                --logfile        {} \
+                --max_mismatches {} \
+                --trimsize_forward {} \
+                --trimsize_reverse {} \
+                --no-includeshort
+        """.format(forward_fasta,reverse_fasta, barcodefile,barcodelength,
+                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse)
+
+
+    assert splitsize % 2 == 0
+
+    #generate the split files nad check for length equivalency
+    print("Splitting the Forward Fasta File, {}".format(forward_fasta))
+    call("cat {} | split -l {} - {}".format(forward_fasta, splitsize,"forward_"),shell=True)
+
+    print("Splitting the Reverse Fastq File, {}".format(reverse_fasta))
+    call("cat {} | split -l {} - {}".format(reverse_fasta, splitsize,"barcode_"),shell=True)
+
+    #get the names of the split files and zip them together
+    split_files_forward = sorted(glob.glob("forward_*"))
+    split_files_reverse = sorted(glob.glob("reverse_*"))
+    split_outfiles = sorted([x.replace("forward_","tempout_")    for x in split_files_forward])
+    split_logfiles = sorted([x.replace("forward_","logfileout_") for x in split_files_forward])
+
+    assert len(split_files_forward) == len(split_files_reverse)
+
+    callstrings = []
+    for (f_fasta, r_fasta, out_file, log_file) in zip(split_files_forward,split_files_reverse,split_outfiles,split_logfiles):
+        callstring = makecallstring(foward_fasta = f_fasta,
+                                    reverse_fasta=r_fasta,
+                                    barcodefile=barcodefile,
+                                    barcodelength=barcodelength,
+                                    outfile=out_file,
+                                    log_file=logfile,
+                                    max_mismatches=max_mismatches,
+                                    trimsize_forward=trimsize_forward,
+                                    trimsize_reverse=trimsize_reverse)
+        callstrings.append(callstring)
+
+    #process the split files in parallel using multiprocessing
+    print("Processing the Split Files in Parallel with {} cpus".format(ncpus))
+    p = multiprocessing.Pool(ncpus)
+
+    results = p.imap_unordered(lambda x: call(x, shell=True), callstrings)
+    for r in results:
+        print(r)
+
+    print("cleaning up the split files....")
+    p.imap(os.remove, split_files_forward)
+    p.imap(os.remove, split_files_barcode)
+
+
+    print("Concatenating the results to {}".format(outfile))
+    call("cat tempout_* > {}".format(outfile), shell=True)
+
+    print("Concatenating the log to results to {}".format(logfile))
+    call("cat logfileout_*  > {}".format(logfile), shell=True)
+
+    print("cleaning up the temporary files....")
+    p.map(os.remove, split_outfiles)
+    p.map(os.remove, split_logfiles)
+
+    # check output filesize is not zero which will happen
+    # if something went wrong with the splitting step due to,say,
+    # an error with the mapping file
+    if os.path.getsize(outfile) == 0:
+        os.remove(outfile)
+        print("Error with Your process.. aborting...")
+        raise ValueError("Outputfile of size zero indicates an issues with your qiime setup")
+
+
 
 @click.command()
 @click.option('--forward_fasta', type=click.File('r'), prompt=True,help="name of the fasta forward file")
@@ -160,12 +273,7 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
             if hdist <= maxdistance:
                 samplematch = sample
 
-    #update values
-    #fastadict['sample'] = samplematch
-    #fastadict['barcode'] = barcode
-    #fastadict['barcode_distance'] = hdist
-    #fastadict['forward_sequence'] = fseq[halfbarcode:]
-    #fastadict['reverse_sequence'] = rseq[halfbarcode:]
+    # return updated values
     return thread_first(fastadict,
                         (assoc, "sample", samplematch),
                         (assoc, "barcode", barcode),
@@ -183,9 +291,6 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
     if len(rseq) < trimsize_reverse:
         tooshort= True
 
-    fastadict['tooshort'] = tooshort
-    fastadict['foward_sequence']  = fseq[:trimsize_forward]
-    fastadict['reverse_sequence'] = rseq[:trimsize_reverse]
     return thread_first(fastadict,
                         (assoc, "tooshort", tooshort),
                         (assoc, "forward_sequence", fseq[:trimsize_forward]),
@@ -220,3 +325,8 @@ def hamdist(str1, str2):
        if ch1 != ch2:
            diffs += 1
    return diffs
+
+
+
+
+
