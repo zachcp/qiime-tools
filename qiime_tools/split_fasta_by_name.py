@@ -23,7 +23,7 @@ def split_fasta_by_name(fastafile,outdir, deletedir):
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
-    records = SeqIO.parse(open(fastafile),'fasta')
+    records = SeqIO.parse(fastafile,'fasta')
 
     for rec in records:
         sample = rec.id("_")[0]
