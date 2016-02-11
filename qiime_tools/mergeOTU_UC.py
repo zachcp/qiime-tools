@@ -128,8 +128,8 @@ def fixindex(df):
 @click.command()
 @click.option('--ucfile', type=click.Path(exists=True), help="name of the otufile")
 @click.option('--outfile', help="name of of the UC file")
-@click.option('--samplenametype', prompt=False, help="how to split out the sample name from the UCfile")
-def UC_to_taxtable(ucfile, outfile, samplefunction=1):
+@click.option('--samplenametype', type=click.Int, default=1, prompt=False, help="how to split out the sample name from the UCfile")
+def UC_to_taxtable(ucfile, outfile, samplenametype):
     """
      the role of this script can be boiled donw to an essential coundint of
      queriy sequence that match a target.
