@@ -29,7 +29,7 @@ class PyTest(TestCommand):
 
 setup(
     name='qiime-tools',
-    version='0.4.17',
+    version='0.4.18',
     install_requires=[
         'Click >= 0.6.0',
         'Biopython >=1.6.5',
@@ -51,6 +51,7 @@ setup(
         split_fasta_by_name = qiime_tools.split_fasta_by_name:split_fasta_by_name
         taxtable_to_otutable = qiime_tools.UCfiles_to_taxtable:taxtable_to_otutable
         UCfiles_to_taxtable = qiime_tools.UCfiles_to_taxtable:UCfiles_to_taxtable
+        UCfile_to_taxtable = qiime_tools.UCfiles_to_taxtable:UC_to_taxtable
     ''',
     test_requirements = ['pytest>=2.1'],
     tests_require=['pytest'],
