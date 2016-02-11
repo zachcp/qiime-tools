@@ -161,7 +161,7 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
             return row.target
 
 
-    df = load_ucfile(filename)
+    df = load_ucfile(ucfile)
 
     #remove the redundant "S" field
     df = df[df.rectype != "S"]
@@ -172,7 +172,7 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
     df['sizes'] = df['query'].str.extract(';size=(\d+)')
 
     #getsamplenames
-    if samplefunction == 1:
+    if samplenametype == 1:
         #DFD_1128.1_M03834:5:000000000-AG1GW:1:1105:222...
         df['sample'] = df['query'].apply(lambda x: "_".join(x.split("_")[:2]))
     else:
