@@ -177,7 +177,7 @@ def UC_to_taxtable(ucfile, outfile, samplefunction=1):
     #aggregate samples that have more than one samepl per OTU
     #this can happen if more than one reads from a sample matches
     df2= df[['target','sample','sizes']].copy()
-    df3 = df2.groupby(['target','sample']).agg("sizes": np.sum)
+    df3 = df2.groupby(['target','sample']).agg({"sizes": np.sum})
 
 
     df2 = df.pivot('target','sample','sizes')
