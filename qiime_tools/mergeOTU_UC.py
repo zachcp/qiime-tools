@@ -4,7 +4,7 @@ import click
 
 @click.command()
 @click.option('--otufilename', type=click.Path(exists=True), help="name of the otufile")
-@click.option('--ucfilename', help="name of of the UC file")
+@click.option('--ucfilename', type=click.Path(exists=True), help="name of of the UC file")
 @click.option('--outfile', prompt=True, help="name of the new UCfile")
 def merge_OTU_UCfile(otufilename, ucfilename, outfile):
     """
@@ -127,8 +127,8 @@ def fixindex(df):
 
 @click.command()
 @click.option('--ucfile', type=click.Path(exists=True), help="name of the otufile")
-@click.option('--outfile', type=click.Path(exists=True), help="name of of the UC file")
-@click.option('--samplenametype', prompt=False, help="how to split out the sampel name from the UCfile")
+@click.option('--outfile', help="name of of the UC file")
+@click.option('--samplenametype', prompt=False, help="how to split out the sample name from the UCfile")
 def UC_to_taxtable(ucfile, outfile, samplefunction=1):
     """
      the role of this script can be boiled donw to an essential coundint of
@@ -180,6 +180,6 @@ def UC_to_taxtable(ucfile, outfile, samplefunction=1):
     df3 = df2.groupby(['target','sample']).agg({"sizes": np.sum})
 
 
-    df2 = df.pivot('target','sample','sizes')
-    df2.to_csv(outfile)
+    df3 = df.pivot('target','sample','sizes')
+    df3.to_csv(outfile)
 
