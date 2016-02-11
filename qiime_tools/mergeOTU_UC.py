@@ -4,7 +4,7 @@ import click
 
 @click.command()
 @click.option('--otufilename', type=click.Path(exists=True), help="name of the otufile")
-@click.option('--ucfilename', type=click.Path(exists=True), help="name of of the UC file")
+@click.option('--ucfilename', help="name of of the UC file")
 @click.option('--outfile', prompt=True, help="name of the new UCfile")
 def merge_OTU_UCfile(otufilename, ucfilename, outfile):
     """
