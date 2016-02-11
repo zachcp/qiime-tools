@@ -128,7 +128,8 @@ def fixindex(df):
 @click.command()
 @click.option('--ucfile', type=click.Path(exists=True), help="name of the otufile")
 @click.option('--outfile', help="name of of the UC file")
-@click.option('--samplenametype', type=click.Int, default=1, prompt=False, help="how to split out the sample name from the UCfile")
+@click.option('--samplenametype', default=1, prompt=False, help="how to split out the sample name from the UCfile. the"
+																"options are hardcoded.")
 def UC_to_taxtable(ucfile, outfile, samplenametype):
     """
      the role of this script can be boiled donw to an essential coundint of
@@ -145,6 +146,10 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
            s1,s2,s3.... are sizes of the quer sequence.
 
     Calcuate the sample name and size from teh query but use the targets as rows/OTUs.
+
+	Samplenametypes:
+	1: DFD_1128.1_M03834:5:000000000-AG1GW:1:1105:222...
+	   returns DFD_1128.1
 
     :return:
     """
