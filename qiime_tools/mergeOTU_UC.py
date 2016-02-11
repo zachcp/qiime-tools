@@ -44,7 +44,7 @@ def load_ucfile(filename):
     more information about UC files.
 
     :param filename:
-    :return: standard datafrme with usearch columns
+    :return: standard dataframe with usearch columns
     """
     col_names = ['rectype', 'clusternum', 'seqlength_clustsize', 'percent_ident',
                  'strand', 'nothing1','nothing2', 'compressed_algn', 'query', 'target']
@@ -182,5 +182,5 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
     df2= df[['target','sample','sizes']].copy()
     df3 = df2.groupby(['target','sample']).agg({"sizes": np.sum}).reset_index()
     df4 = df3.pivot('target','sample','sizes')
-    df4.to_csv(outfile,index=False)
+    df4.to_csv(outfile)
 
