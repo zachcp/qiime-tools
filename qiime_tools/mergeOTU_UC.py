@@ -169,6 +169,7 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
     df['target'] = df.apply(fixtargetcolumns,axis=1)
     #get sizes
     df['sizes'] = df['query'].str.extract(';size=(\d+)')
+    df['sizes'] = df['sizes'].astype(int)
 
     #getsamplenames
     if samplenametype == 1:
@@ -182,5 +183,5 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
     df2= df[['target','sample','sizes']].copy()
     df3 = df2.groupby(['target','sample']).agg({"sizes": np.sum}).reset_index()
     df4 = df3.pivot('target','sample','sizes')
-    df4.to_csv(outfile)
+    df4.to_csv(outfile, sep="\t")
 

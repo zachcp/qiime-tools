@@ -29,11 +29,12 @@ class PyTest(TestCommand):
 
 setup(
     name='qiime-tools',
-    version='0.4.21',
+    version='0.4.22',
     install_requires=[
         'Click >= 0.6.0',
         'Biopython >=1.6.5',
-        'cytoolz'
+        'cytoolz',
+        'pandas'
     ],
     packages=find_packages(),
     entry_points='''
