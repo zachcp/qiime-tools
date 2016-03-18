@@ -102,10 +102,9 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     #process the split files in parallel using multiprocessing
     print("Processing the Split Files in Parallel with {} cpus".format(ncpus))
     p = multiprocessing.Pool(ncpus)
-
     results = p.imap_unordered(lambda x: call(x, shell=True), callstrings)
     for r in results:
-        print(r)
+        print("Processing split file.")
 
     print("cleaning up the split files....")
     p.imap(os.remove, split_files_forward)
@@ -221,9 +220,12 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
 
-        #ignore non assigned and too short sequences
         if sample:
+            #ignore non assigned and too short sequences
             if includeshort is False and tooshort:
+                pass
+            #ignore sequences with barcode mismatches above the threshold
+            elif brcd_dist > max_mismatches:
                 pass
             else:
                 writesample()
