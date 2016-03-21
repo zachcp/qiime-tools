@@ -56,6 +56,8 @@ def test_demultiplexfasta_basic():
         assert set(os.listdir(".")) == set(["out.log","out.fasta"])
         records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
         assert len(records) == 3
+        for rec in records:
+            assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
 
 
 def test_demultiplexfasta_trimsize():
@@ -79,6 +81,9 @@ def test_demultiplexfasta_trimsize():
         assert set(os.listdir(".")) == set(["out.log","out.fasta"])
         records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
         assert len(records) == 2
+        # check sequences are the correct length
+        for rec in records:
+            assert(len(rec.seq) == 70) # 30 + 10 spacer + 30
 
     with runner.isolated_filesystem():
         outfasta   = "out.fasta"
@@ -99,3 +104,4 @@ def test_demultiplexfasta_trimsize():
         assert set(os.listdir(".")) == set(["out.log","out.fasta"])
         records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
         assert len(records) == 3
+

@@ -220,15 +220,24 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
 
-        if sample:
-            #ignore non assigned and too short sequences
-            if includeshort is False and tooshort:
-                pass
-            #ignore sequences with barcode mismatches above the threshold
-            elif brcd_dist > max_mismatches:
-                pass
-            else:
-                writesample()
+        def shouldwritesample():
+            " encapsuale sequence-wriing login in a function"
+
+            # Only use sequences samples that have a sample
+            if not sample:
+                return
+
+            # Ignore short sequences if the flag is false
+            if includeshort is False and tooshort is True:
+                return
+
+            # Ignore sequences with barcode mismatches above the threshold
+            if brcd_dist > max_mismatches:
+                return
+
+            writesample()
+
+        shouldwritesample()
 
     # write out log information
     logfile.write("""
