@@ -220,7 +220,8 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
 
-        def shouldwritesample():
+        def shouldwritesample(sample=sample,includeshort=includeshort,tooshort=tooshort,
+                              brcd_dist=brcd_dist,max_mismatches=max_mismatches):
             " encapsulate sequence-writing logic in a function"
 
             # Only use sequences samples that have a sample
@@ -237,8 +238,9 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
             return True
 
+        shouldwrite = shouldwritesample()
 
-        if shouldwritesample() is True:
+        if shouldwrite == True:
             writesample()
 
     # write out log information
