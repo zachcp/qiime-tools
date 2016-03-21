@@ -14,7 +14,6 @@ import click
 from cytoolz.dicttoolz import assoc
 from cytoolz.functoolz import thread_first
 
-
 @click.command()
 @click.option('--forward_fasta', type=click.File('r'), prompt=True,help="name of the fasta forward file")
 @click.option('--reverse_fasta', type=click.File('r'), prompt=True, help="name of the fasta reverse file")
@@ -144,8 +143,13 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
 @click.option('--includeshort/--no-includeshort', default=False)
 @click.option('--spacersequence', default="NNNNNNNNNN")
 @click.option('--sampleindex', type=click.INT, default=1)
+@click.option('--includeshort/--no-includeshort', default=False)
+@click.option('--reverse_complement_forward/--no-reverse_complement_forward', default=False)
+@click.option('--reverse_complement_reverse/--no-reverse_complement_reverse', default=False)
+@click.option('--concatfirst', type=click.Choice(['forward', 'reverse']))
 def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
-                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex):
+                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex,
+                reverse_complement_forward, reverse_complement_reverse, concatfirst):
     """
     Demultiplexing paired Fasta files with a barcode file.
 
@@ -213,8 +217,24 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
         if tooshort: tooshortcount += 1
 
         #write sample
-        def writesample():
-            allseq = forward_seq + spacersequence + reversecomplement(reverse_seq)
+        def writesample(forward_seq=forward_seq, reverse_seq=reverse_seq, concatfirst=concatfirst,
+                        sample=sample,forward_id=forward_id, count=count,barcode=barcode,brcd_dist=brcd_dist):
+
+            #do reverse complement if necessary
+            if reverse_complement_forward:
+                forward_seq = reversecomplement(forward_seq)
+            if reverse_complement_reverse:
+                reverse_seq = reversecomplement(reverse_seq)
+
+            #concat seuences in correct orientation
+            if concatfirst == "forward":
+                allseq = forward_seq + spacersequence + reverse_seq
+            elif concatfirst == "reverse":
+                allseq = reverse_seq + spacersequence + forward_seq
+            else:
+                raise ValueError("concatfirst must be 'forward' or 'reverse' ")
+
+            # write out sequences
             fastaheader = "{}_{}_{:06d} barcode:{} barcodemismatches:{}".format(
                 sample, forward_id, count, barcode, brcd_dist)
 
