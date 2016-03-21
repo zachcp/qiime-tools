@@ -33,7 +33,7 @@ from cytoolz.functoolz import thread_first
 def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
                 trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize,ncpus):
     """
-    A wrapper for `demultiplex`. Splitting the input fasta fiel and
+    A wrapper for `demultiplex`. Splitting the input fasta file and
     does the work on the pieces
 
     :param forward_fasta:
@@ -79,10 +79,10 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     call("cat {} | split -l {} - {}".format(reverse_fasta, splitsize,"barcode_"),shell=True)
 
     #get the names of the split files and zip them together
-    split_files_forward = sorted(glob.glob("forward_*"))
-    split_files_reverse = sorted(glob.glob("reverse_*"))
-    split_outfiles = sorted([x.replace("forward_","tempout_")    for x in split_files_forward])
-    split_logfiles = sorted([x.replace("forward_","logfileout_") for x in split_files_forward])
+    split_files_forward = sorted( glob.glob("forward_*"))
+    split_files_reverse = sorted( glob.glob("reverse_*"))
+    split_outfiles      = sorted([x.replace("forward_","tempout_")    for x in split_files_forward])
+    split_logfiles      = sorted([x.replace("forward_","logfileout_") for x in split_files_forward])
 
     assert len(split_files_forward) == len(split_files_reverse)
 
@@ -221,23 +221,25 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
 
         def shouldwritesample():
-            " encapsuale sequence-wriing login in a function"
+            " encapsulate sequence-writing logic in a function"
 
             # Only use sequences samples that have a sample
             if not sample:
-                return
+                return False
 
             # Ignore short sequences if the flag is false
             if includeshort is False and tooshort is True:
-                return
+                return False
 
             # Ignore sequences with barcode mismatches above the threshold
             if brcd_dist > max_mismatches:
-                return
+                return False
 
+            return True
+
+
+        if shouldwritesample() is True:
             writesample()
-
-        shouldwritesample()
 
     # write out log information
     logfile.write("""
