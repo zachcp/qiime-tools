@@ -310,7 +310,7 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
     return thread_first(fastadict,
                         (assoc, "tooshort", tooshort),
                         (assoc, "forward_sequence", fseq[:trimsize_forward]),
-                        (assoc, "reverse_distance", rseq[:trimsize_reverse]))
+                        (assoc, "reverse_sequence", rseq[:trimsize_reverse]))
 
 
 def process_barcodefile(file, barcodelength):
