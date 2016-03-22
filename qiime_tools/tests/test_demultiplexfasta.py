@@ -5,7 +5,7 @@ have been labelled by sample id.
 
 """
 import os
-from qiime_tools.demultiplexfasta import demultiplex, process_barcodefile
+from qiime_tools.demultiplexfasta import demultiplex, demultiplex_parallel, process_barcodefile
 from Bio import SeqIO
 from click.testing import CliRunner
 
@@ -49,7 +49,8 @@ def test_demultiplexfasta_basic():
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
                                 '--trimsize_forward', 5,
-                                '--trimsize_reverse', 5])
+                                '--trimsize_reverse', 5,
+                                '--concatfirst', 'forward'])
 
         #assert the output is the correct length and sequence
         assert result.exit_code == 0
@@ -74,7 +75,8 @@ def test_demultiplexfasta_trimsize():
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
                                 '--trimsize_forward', 30,
-                                '--trimsize_reverse', 30])
+                                '--trimsize_reverse', 30,
+                                '--concatfirst', 'forward'])
 
         #assert the output is the correct length and sequence
         assert result.exit_code == 0
@@ -97,11 +99,41 @@ def test_demultiplexfasta_trimsize():
                                 '--logfile', outlogfile,
                                 '--trimsize_forward', 30,
                                 '--trimsize_reverse', 30,
-                                '--includeshort'])
+                                '--includeshort',
+                                '--concatfirst', 'forward'])
 
         #assert the output is the correct length and sequence
         assert result.exit_code == 0
         assert set(os.listdir(".")) == set(["out.log","out.fasta"])
         records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
         assert len(records) == 3
+
+
+def test_demultiplexfasta_parallel_basic():
+    "run fastqconcat and check that the sequences have been concatenated."
+    runner=CliRunner()
+    with runner.isolated_filesystem():
+        outfasta   = "out.fasta"
+        outlogfile = "out.log"
+        result = runner.invoke(demultiplex_parallel,
+                               ['--forward_fasta', fna1,
+                                '--reverse_fasta', fna2,
+                                '--barcodefile', barcodesfile,
+                                '--splitsize', 4,
+                                '--barcodelength', 8,
+                                '--outfile', outfasta,
+                                '--logfile', outlogfile,
+                                '--trimsize_forward', 5,
+                                '--trimsize_reverse', 5,
+                                '--no-reverse_complement_forward',
+                                '--reverse_complement_reverse',
+                                '--concatfirst=forward'])
+
+        #assert the output is the correct length and sequence
+        assert result.exit_code == 0
+        assert set(os.listdir(".")) == set(["out.log","out.fasta"])
+        records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
+        assert len(records) == 3
+        for rec in records:
+            assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
 

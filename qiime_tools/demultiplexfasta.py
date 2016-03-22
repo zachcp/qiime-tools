@@ -3,24 +3,27 @@
 #standard_library.install_aliases()
 #from builtins import zip
 
-from collections import defaultdict
+import click
 import glob
 import multiprocessing
 import os
-from subprocess import call
+import shutil
+import sys
 
 from Bio import SeqIO
-import click
+from collections import defaultdict
+from subprocess import call
 from cytoolz.dicttoolz import assoc
 from cytoolz.functoolz import thread_first
+from multiprocess import Pool
 
 @click.command()
-@click.option('--forward_fasta', type=click.File('r'), prompt=True,help="name of the fasta forward file")
-@click.option('--reverse_fasta', type=click.File('r'), prompt=True, help="name of the fasta reverse file")
+@click.option('--forward_fasta', prompt=True,help="name of the fasta forward file")
+@click.option('--reverse_fasta', prompt=True, help="name of the fasta reverse file")
 @click.option('--barcodefile', type=click.Path(exists=True), prompt=True,help="name of the barcode file")
 @click.option('--barcodelength', type=click.INT, prompt=True, help="how long is the barcode")
-@click.option('--outfile', type=click.File('w'), prompt=True, help="output fasta file")
-@click.option('--logfile', type=click.File('w'), prompt=True, help="output log file")
+@click.option('--outfile', prompt=True, help="output fasta file")
+@click.option('--logfile', prompt=True, help="output log file")
 @click.option('--max_mismatches', type=click.INT, default=1, help="maximum difference between sequence and barcode")
 @click.option('--trimsize_forward',type=click.INT, default=1000)
 @click.option('--trimsize_reverse',type=click.INT, default=1000)
@@ -29,11 +32,16 @@ from cytoolz.functoolz import thread_first
 @click.option('--sampleindex', type=click.INT, default=1)
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--ncpus', type=click.INT, default=2, help="cpus to use")
+@click.option('--reverse_complement_forward/--no-reverse_complement_forward', default=False)
+@click.option('--reverse_complement_reverse/--no-reverse_complement_reverse', default=True)
+@click.option('--concatfirst', type=click.Choice(['forward', 'reverse']))
 def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
-                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize,ncpus):
+                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize,ncpus,
+                         reverse_complement_forward, reverse_complement_reverse, concatfirst):
     """
-    A wrapper for `demultiplex`. Splitting the input fasta file and
-    does the work on the pieces
+    A wrapper for `demultiplex_fasta` that splitting the input fasta file and
+    does the work on the pieces. Note that inputs are strings not Clikc.Files as is
+    the case for the singel script.
 
     :param forward_fasta:
     :param reverse_fasta:
@@ -51,7 +59,19 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     """
 
     def makecallstring(forward_fasta,reverse_fasta, barcodefile,barcodelength,
-                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse):
+                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse,
+                       reverse_complement_forward, reverse_complement_reverse, concatfirst):
+
+        if reverse_complement_forward:
+            revcompstring_F = "--reverse_complement_forward"
+        else:
+            revcompstring_F = "--no-reverse_complement_forward"
+        if reverse_complement_reverse:
+            revcompstring_R = "--reverse_complement_reverse"
+        else:
+            revcompstring_R = "--no-reverse_complement_reverse"
+
+
         return """
         demultiplexfasta \
                 --forward_fasta  {} \
@@ -63,19 +83,26 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                 --max_mismatches {} \
                 --trimsize_forward {} \
                 --trimsize_reverse {} \
-                --no-includeshort
+                --no-includeshort \
+                {} \
+                {} \
+                --concatfirst={}
         """.format(forward_fasta,reverse_fasta, barcodefile,barcodelength,
-                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse)
+                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse,
+                   revcompstring_F,revcompstring_R, concatfirst)
 
 
     assert splitsize % 2 == 0
 
+
+    splitcommand = which_split()
+
     #generate the split files nad check for length equivalency
     print("Splitting the Forward Fasta File, {}".format(forward_fasta))
-    call("cat {} | split -l {} - {}".format(forward_fasta, splitsize,"forward_"),shell=True)
+    call("cat {} | {} -l {} - {}".format(forward_fasta, splitcommand, splitsize,"forward_"),shell=True)
 
     print("Splitting the Reverse Fastq File, {}".format(reverse_fasta))
-    call("cat {} | split -l {} - {}".format(reverse_fasta, splitsize,"barcode_"),shell=True)
+    call("cat {} | {} -l {} - {}".format(reverse_fasta, splitcommand, splitsize,"reverse_"),shell=True)
 
     #get the names of the split files and zip them together
     split_files_forward = sorted( glob.glob("forward_*"))
@@ -87,24 +114,28 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
 
     callstrings = []
     for (f_fasta, r_fasta, out_file, log_file) in zip(split_files_forward,split_files_reverse,split_outfiles,split_logfiles):
-        callstring = makecallstring(foward_fasta = f_fasta,
-                                    reverse_fasta=r_fasta,
-                                    barcodefile=barcodefile,
-                                    barcodelength=barcodelength,
-                                    outfile=out_file,
-                                    log_file=logfile,
-                                    max_mismatches=max_mismatches,
-                                    trimsize_forward=trimsize_forward,
-                                    trimsize_reverse=trimsize_reverse)
+        callstring = makecallstring(forward_fasta    = f_fasta,
+                                    reverse_fasta    = r_fasta,
+                                    barcodefile      = barcodefile,
+                                    barcodelength    = barcodelength,
+                                    outfile          = out_file,
+                                    logfile          = log_file,
+                                    max_mismatches   = max_mismatches,
+                                    trimsize_forward = trimsize_forward,
+                                    trimsize_reverse = trimsize_reverse,
+                                    reverse_complement_forward = reverse_complement_forward,
+                                    reverse_complement_reverse = reverse_complement_reverse,
+                                    concatfirst=concatfirst)
         callstrings.append(callstring)
 
     #process the split files in parallel using multiprocessing
     print("Processing the Split Files in Parallel with {} cpus".format(ncpus))
-    p = multiprocessing.Pool(ncpus)
+    p = Pool(ncpus)
     results = p.imap_unordered(lambda x: call(x, shell=True), callstrings)
     for r in results:
         print("Processing split file.")
 
+    print(os.listdir('.'))
     print("cleaning up the split files....")
     p.imap(os.remove, split_files_forward)
     p.imap(os.remove, split_files_reverse)
@@ -145,7 +176,7 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
 @click.option('--sampleindex', type=click.INT, default=1)
 @click.option('--includeshort/--no-includeshort', default=False)
 @click.option('--reverse_complement_forward/--no-reverse_complement_forward', default=False)
-@click.option('--reverse_complement_reverse/--no-reverse_complement_reverse', default=False)
+@click.option('--reverse_complement_reverse/--no-reverse_complement_reverse', default=True)
 @click.option('--concatfirst', type=click.Choice(['forward', 'reverse']))
 def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
                 trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex,
@@ -265,10 +296,12 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
     # write out log information
     logfile.write("""
+       Barcode File: {}
        Sequenced Processed: {}
-       Truncated Samples: {}
+       Samples Below the Length Cutoff: {}
        Samples Unassigned due to Barcodes: {}
-       """.format(count, tooshortcount, badbarcodecount))
+
+       """.format(barcodefile, count, tooshortcount, badbarcodecount))
 
     for sam, cnt in samplecounts.items():
         logfile.write("Observed Counts for Sample {}: {}\n".format(sam,cnt))
@@ -367,6 +400,18 @@ def hamdist(str1, str2):
    return diffs
 
 
+def which_split():
+    "get aplit command using gpslit from homebrew on mac osx"
 
-
+    if sys.platform == "darwin":
+        #check for homebrew coreutils
+        has_gsplit = shutil.which('gsplit')
+        if has_gsplit is not None:
+            return("gsplit")
+        else:
+            return("split")
+    elif 'linux' in sys.platform:
+        return("split")
+    else:
+        raise ValueError("Only Linux and MacOSX supported")
 
