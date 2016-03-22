@@ -5,7 +5,7 @@
 
 import click
 import glob
-import multiprocessing
+#import multiprocessing
 import os
 import shutil
 import sys
@@ -148,8 +148,8 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     call("cat logfileout_*  > {}".format(logfile), shell=True)
 
     print("cleaning up the temporary files....")
-    p.map(os.remove, split_outfiles)
-    p.map(os.remove, split_logfiles)
+    p.imap(os.remove, split_outfiles)
+    p.imap(os.remove, split_logfiles)
 
     # check output filesize is not zero which will happen
     # if something went wrong with the splitting step due to,say,

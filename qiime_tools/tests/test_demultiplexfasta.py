@@ -4,6 +4,7 @@ This file tests the demultiplexfasta script. demutiplexfasta two fastqfiles and 
 have been labelled by sample id.
 
 """
+import glob
 import os
 from qiime_tools.demultiplexfasta import demultiplex, demultiplex_parallel, process_barcodefile
 from Bio import SeqIO
@@ -59,6 +60,7 @@ def test_demultiplexfasta_basic():
         assert len(records) == 3
         for rec in records:
             assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
+
 
 
 def test_demultiplexfasta_trimsize():
@@ -136,4 +138,10 @@ def test_demultiplexfasta_parallel_basic():
         assert len(records) == 3
         for rec in records:
             assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
+
+        # check that the temp files have been cleaned
+        tempfiles = glob.glob("tempout_*")
+        templogfiles = glob.glob("logfileout_*")
+        assert(len(tempfiles) == 0)
+        assert(len(templogfiles) == 0)
 
