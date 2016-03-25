@@ -110,11 +110,7 @@ def returntopsums(group):
 
 
 def fixindex(df):
-    """
-
-    :param df:
-    :return:
-    """
+    """ make sure integers are padded with zeros. """
     def format(x):
         x_int = int(x.replace("Seq_",""))
         return "Seq_{0:07d}".format(x_int)
@@ -129,7 +125,7 @@ def fixindex(df):
 @click.option('--ucfile', type=click.Path(exists=True), help="name of the otufile")
 @click.option('--outfile', help="name of of the UC file")
 @click.option('--samplenametype', default=1, prompt=False, help="how to split out the sample name from the UCfile. the"
-																"options are hardcoded.")
+                                                                "options are hardcoded.")
 def UC_to_taxtable(ucfile, outfile, samplenametype):
     """
      the role of this script can be boiled donw to an essential coundint of
@@ -147,9 +143,9 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
 
     Calcuate the sample name and size from teh query but use the targets as rows/OTUs.
 
-	Samplenametypes:
-	1: DFD_1128.1_M03834:5:000000000-AG1GW:1:1105:222...
-	   returns DFD_1128.1
+    Samplenametypes:
+    1: DFD_1128.1_M03834:5:000000000-AG1GW:1:1105:222...
+       returns DFD_1128.1
 
     :return:
     """
@@ -180,8 +176,9 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
 
     #aggregate samples that have more than one sample per OTU
     #this can happen if more than one reads from a sample matches
-    df2= df[['target','sample','sizes']].copy()
+    df2 = df[['target','sample','sizes']].copy()
     df3 = df2.groupby(['target','sample']).agg({"sizes": np.sum}).reset_index()
-    df4 = df3.pivot('target','sample','sizes')
+    df4 = df3.pivot('target','sample','sizes').fillna(0)
     df4.to_csv(outfile, sep="\t")
+
 
