@@ -266,7 +266,7 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
                 raise ValueError("concatfirst must be 'forward' or 'reverse' ")
 
             # write out sequences
-            fastaheader = "{}_{}_{:06d} barcode:{} barcodemismatches:{}".format(
+            fastaheader = "{}.{}.{:06d} barcode:{} barcodemismatches:{}".format(
                 sample, forward_id, count, barcode, brcd_dist)
 
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
