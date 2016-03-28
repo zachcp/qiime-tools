@@ -43,23 +43,23 @@ def split_fasta_by_name(fastafile,outdir, spliton, deletedir):
         if spliton == "underscore":
             sample = rec.id.split("_")[0]
         elif spliton == "underscore2":
-            sample = "_".join(rec.id.split("_")[:2])
+            sample = ".".join(rec.id.split("_")[:2])
         elif spliton == "underscore3":
-            sample = "_".join(rec.id.split("_")[:3])
+            sample = ".".join(rec.id.split("_")[:3])
         elif spliton == "underscore4":
-            sample = "_".join(rec.id.split("_")[:4])
+            sample = ".".join(rec.id.split("_")[:4])
         elif spliton == "underscore5":
-            sample = "_".join(rec.id.split("_")[:5])
+            sample = ".".join(rec.id.split("_")[:5])
         elif spliton == "dot":
             sample = rec.id.split(".")[0]
         elif spliton == "dot2":
-            sample = rec.id.split(".")[:2]
+            sample = ".".join(rec.id.split("_")[:2])
         elif spliton == "dot3":
-            sample = rec.id.split(".")[:3]
+            sample = ".".join(rec.id.split("_")[:3])
         elif spliton == "dot4":
-            sample = rec.id.split(".")[:4]
+            sample = ".".join(rec.id.split("_")[:4])
         elif spliton == "dot5":
-            sample = rec.id.split(".")[:5]
+            sample = ".".join(rec.id.split("_")[:5])
         else:
             raise ValueError("names are split by underscores or dots")
 
