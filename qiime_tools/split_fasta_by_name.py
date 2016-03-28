@@ -10,7 +10,8 @@ import click
 @click.command()
 @click.option('--fastafile', type=click.File('r'), prompt=True,help="name of the fasta file")
 @click.option('--outdir', prompt=True, help="name of the output directory")
-@click.option('--spliton', type=click.Choice(['underscore', 'dot', "underscore2", "underscore4"]))
+@click.option('--spliton', type=click.Choice(['underscore', "underscore2","underscore3","underscore4",
+                                              'dot',"dot2","dot3", "dot4"]))
 @click.option('--deletedir/--no-deletedir', default=False, help="whether or not to delete the directory")
 def split_fasta_by_name(fastafile,outdir, spliton, deletedir):
     """
@@ -41,12 +42,20 @@ def split_fasta_by_name(fastafile,outdir, spliton, deletedir):
     for rec in records:
         if spliton == "underscore":
             sample = rec.id.split("_")[0]
-        elif spliton == "dot":
-            sample = rec.id.split(".")[0]
         elif spliton == "underscore2":
             sample = "_".join(rec.id.split("_")[:2])
+        elif spliton == "underscore3":
+            sample = "_".join(rec.id.split("_")[:3])
         elif spliton == "underscore4":
             sample = "_".join(rec.id.split("_")[:4])
+        elif spliton == "dot":
+            sample = rec.id.split(".")[0]
+        elif spliton == "dot2":
+            sample = rec.id.split(".")[2]
+        elif spliton == "dot3":
+            sample = rec.id.split(".")[3]
+        elif spliton == "dot4":
+            sample = rec.id.split(".")[4]
         else:
             raise ValueError("names are split by underscores or dots")
 
