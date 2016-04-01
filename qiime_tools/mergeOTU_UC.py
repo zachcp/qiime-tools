@@ -76,7 +76,7 @@ def process_uc(filename, use_sizes=False):
     df['target'] = df.apply(fixtargetcolumns,axis=1)
 
     if use_sizes:
-        df['sizes'] = df['target'].str.extract(';size=(\d+)')
+        df['sizes'] = df['target'].str.extract(';size=(\d+)', expand=False)
         counts = df.groupby(['query', 'target']).agg({'sizes': np.sum})
     else:
         counts = df.groupby(['query', 'target']).count().reset_index()
