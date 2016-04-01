@@ -127,8 +127,8 @@ def fixindex(df):
 @click.option('--outfile', help="name of of the UC file")
 @click.option('--namehandling',
               type=click.Choice(['underscore', "underscore2","underscore3","underscore4","underscore5",
-                                 'dot',"dot2","dot3", "dot4","dot5"],
-               help="how to split out the sample name from the UCfile. the options are hardcoded."))
+                                 'dot',"dot2","dot3", "dot4","dot5"]),
+               help="how to split out the sample name from the UCfile. the options are hardcoded.")
 def UC_to_taxtable(ucfile, outfile, namehandling):
     """
      the role of this script can be boiled donw to an essential coundint of
