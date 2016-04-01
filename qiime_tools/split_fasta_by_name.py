@@ -4,6 +4,7 @@
 #from builtins import zip
 import os
 from Bio import SeqIO
+from .namehandling import processname
 import click
 
 
@@ -39,30 +40,9 @@ def split_fasta_by_name(fastafile,outdir, spliton, deletedir):
 
     records = SeqIO.parse(fastafile,'fasta')
 
-    for rec in records:
-        if spliton == "underscore":
-            sample = rec.id.split("_")[0]
-        elif spliton == "underscore2":
-            sample = ".".join(rec.id.split("_")[:2])
-        elif spliton == "underscore3":
-            sample = ".".join(rec.id.split("_")[:3])
-        elif spliton == "underscore4":
-            sample = ".".join(rec.id.split("_")[:4])
-        elif spliton == "underscore5":
-            sample = ".".join(rec.id.split("_")[:5])
-        elif spliton == "dot":
-            sample = rec.id.split(".")[0]
-        elif spliton == "dot2":
-            sample = ".".join(rec.id.split(".")[:2])
-        elif spliton == "dot3":
-            sample = ".".join(rec.id.split(".")[:3])
-        elif spliton == "dot4":
-            sample = ".".join(rec.id.split(".")[:4])
-        elif spliton == "dot5":
-            sample = ".".join(rec.id.split(".")[:5])
-        else:
-            raise ValueError("names are split by underscores or dots")
 
+    for rec in records:
+        sample = processname(rec.id, func= spliton)
         outlocation = "{}/{}.fasta".format(outdir, sample)
         with open(outlocation,'a') as f:
             f.write(">{} {}\n{}\n".format(rec.id, rec.description, str(rec.seq)))

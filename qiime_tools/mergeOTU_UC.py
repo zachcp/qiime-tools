@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import click
+from .namehandling import processname
 
 @click.command()
 @click.option('--otufilename', type=click.Path(exists=True), help="name of the otufile")
@@ -8,7 +9,7 @@ import click
 @click.option('--outfile', prompt=True, help="name of the new UCfile")
 def merge_OTU_UCfile(otufilename, ucfilename, outfile):
     """
-    This function performs a groupby operation on an OTU tale, using groups (clusters)
+    This function performs a groupby operation on an OTU table, using groups (clusters)
     obtained from a Usearch OTU file. The logic here is to be able to cluster sequences using
     usearch and compress the OTU file correspondingly.
 
@@ -124,9 +125,11 @@ def fixindex(df):
 @click.command()
 @click.option('--ucfile', type=click.Path(exists=True), help="name of the otufile")
 @click.option('--outfile', help="name of of the UC file")
-@click.option('--samplenametype', default=1, prompt=False, help="how to split out the sample name from the UCfile. the"
-                                                                "options are hardcoded.")
-def UC_to_taxtable(ucfile, outfile, samplenametype):
+@click.option('--namehandling',
+              type=click.Choice(['underscore', "underscore2","underscore3","underscore4","underscore5",
+                                 'dot',"dot2","dot3", "dot4","dot5"],
+               help="how to split out the sample name from the UCfile. the options are hardcoded."))
+def UC_to_taxtable(ucfile, outfile, namehandling):
     """
      the role of this script can be boiled donw to an essential coundint of
      queriy sequence that match a target.
@@ -146,6 +149,8 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
     Samplenametypes:
     1: DFD_1128.1_M03834:5:000000000-AG1GW:1:1105:222...
        returns DFD_1128.1
+    2: DFD000391.r01.w0000.pAD1.M03834:4:000000000-AG1H0:1:1104:13704:13535.003791;size=9994;
+        returns DFD000391.r01.w0000.
 
     :return:
     """
@@ -168,11 +173,7 @@ def UC_to_taxtable(ucfile, outfile, samplenametype):
     df['sizes'] = df['sizes'].astype(int)
 
     #getsamplenames
-    if samplenametype == 1:
-        #DFD_1128.1_M03834:5:000000000-AG1GW:1:1105:222...
-        df['sample'] = df['query'].apply(lambda x: "_".join(x.split("_")[:2]))
-    else:
-        raise ValueError("Currently only a single sample naming scheme available.")
+    df['sample'] = df['query'].apply(lambda x: processname(x, func=namehandling))
 
     #aggregate samples that have more than one sample per OTU
     #this can happen if more than one reads from a sample matches
