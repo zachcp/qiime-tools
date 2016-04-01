@@ -165,11 +165,12 @@ def UC_to_taxtable(ucfile, outfile, namehandling):
 
     #remove the redundant "S" field
     df = df[df.rectype != "S"]
+    df = df.reset_index()
 
     #fix targetnames
     df['target'] = df.apply(fixtargetcolumns,axis=1)
     #get sizes
-    df['sizes'] = df['query'].str.extract(';size=(\d+)')
+    df['sizes'] = df['query'].str.extract(';size=(\d+)', expand=False)
     df['sizes'] = df['sizes'].astype(int)
 
     #getsamplenames
