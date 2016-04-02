@@ -156,10 +156,10 @@ def UC_to_taxtable(ucfile, outfile, namehandling):
     """
 
     def fixtargetcolumns(row):
-        if row.target == "*":
-            return row.query
+        if row['target'] == "*":
+            return row['query']
         else:
-            return row.target
+            return row['target']
 
     df = load_ucfile(ucfile)
 
@@ -182,5 +182,6 @@ def UC_to_taxtable(ucfile, outfile, namehandling):
     df3 = df2.groupby(['target','sample']).agg({"sizes": np.sum}).reset_index()
     df4 = df3.pivot('target','sample','sizes').fillna(0)
     df4.to_csv(outfile, sep="\t")
+
 
 
