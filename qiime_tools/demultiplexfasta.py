@@ -387,7 +387,8 @@ def process_barcodefile(file, barcodelength):
     assert(data != {})
     for k,v in data.items():
         # check barcode lengths
-        assert(len(v) == barcodelength)
+        if not len(v) == barcodelength:
+            raise ValueError("Barcode {} is not of expected length {}".format(v, barcodelength))
 
     return data
 
