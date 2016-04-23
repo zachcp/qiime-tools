@@ -30,12 +30,8 @@ def test_sequences():
     #basic fasta checking
     recs_F = [rec for rec in SeqIO.parse(open(fna1),'fasta')]
     recs_R = [rec for rec in SeqIO.parse(open(fna2),'fasta')]
-    assert len(recs_F) == 4
-    assert len(recs_R) == 4
-
-# def test_process_barcodefile():
-#     barcodes = process_barcodefile(barcodesfile, 8)
-#     assert(barcodes["Sample1"] == "AAAAAAAA")
+    assert len(recs_F) == 5
+    assert len(recs_R) == 5
 
 def test_process_barcodefile():
     barcodes = process_barcodefile(barcodesfile, 16)
@@ -46,10 +42,16 @@ def test_process_barcodefile():
                                      "reverse_barcode": "CCCCCCCC",
                                      "reverse_spacer":  "GA",
                                      "reverse_primer":  "CCCNNNGCTCCCNNNGCT"})
-
+    assert (barcodes["Sample2"] == {'forward_primer': 'TCNNNNTCTCTCGTGTC',
+                                    'reverse_primer': 'TCTCTCTCCCTCTCCCNNNGCT',
+                                    'reverse_spacer': 'GATC',
+                                    'forward_barcode': 'TTTTTTTT',
+                                    'reverse_barcode': 'GGGGGGGG',
+                                    'barcode': 'TTTTTTTTGGGGGGGG',
+                                    'forward_spacer': 'ACT'})
 
 def test_demultiplexfasta_basic():
-    "run fastqconcat and check that the sequences have been concatenated."
+    "test basic demultiplexing"
     runner=CliRunner()
     with runner.isolated_filesystem():
         outfasta   = "out.fasta"
@@ -58,7 +60,7 @@ def test_demultiplexfasta_basic():
                                ['--forward_fasta', fna1,
                                 '--reverse_fasta', fna2,
                                 '--barcodefile', barcodesfile,
-                                '--barcodelength', 8,
+                                '--barcodelength', 16,
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
                                 '--trimsize_forward', 5,
@@ -67,11 +69,39 @@ def test_demultiplexfasta_basic():
 
         #assert the output is the correct length and sequence
         assert result.exit_code == 0
-        assert set(os.listdir(".")) == set(["out.log","out.fasta"])
+        assert set(os.listdir(".")) == {"out.log", "out.fasta"}
+        records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
+        assert len(records) == 2
+        for rec in records:
+            assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
+
+
+def test_demultiplexfasta_maxdistance():
+    "change the error threshhold and observe more sequences"
+    runner=CliRunner()
+    with runner.isolated_filesystem():
+        outfasta   = "out.fasta"
+        outlogfile = "out.log"
+        result = runner.invoke(demultiplex,
+                               ['--forward_fasta', fna1,
+                                '--reverse_fasta', fna2,
+                                '--barcodefile', barcodesfile,
+                                '--barcodelength', 16,
+                                '--outfile', outfasta,
+                                '--logfile', outlogfile,
+                                '--trimsize_forward', 5,
+                                '--trimsize_reverse', 5,
+                                '--max_mismatches', 3,
+                                '--concatfirst', 'forward'])
+
+        #assert the output is the correct length and sequence
+        assert result.exit_code == 0
+        assert set(os.listdir(".")) == {"out.log", "out.fasta"}
         records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
         assert len(records) == 3
         for rec in records:
             assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
+
 
 
 
@@ -85,7 +115,7 @@ def test_demultiplexfasta_trimsize():
                                ['--forward_fasta', fna1,
                                 '--reverse_fasta', fna2,
                                 '--barcodefile', barcodesfile,
-                                '--barcodelength', 8,
+                                '--barcodelength', 16,
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
                                 '--trimsize_forward', 30,
@@ -108,7 +138,7 @@ def test_demultiplexfasta_trimsize():
                                ['--forward_fasta', fna1,
                                 '--reverse_fasta', fna2,
                                 '--barcodefile', barcodesfile,
-                                '--barcodelength', 8,
+                                '--barcodelength', 16,
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
                                 '--trimsize_forward', 30,
@@ -134,7 +164,7 @@ def test_demultiplexfasta_parallel_basic():
                                 '--reverse_fasta', fna2,
                                 '--barcodefile', barcodesfile,
                                 '--splitsize', 4,
-                                '--barcodelength', 8,
+                                '--barcodelength', 16,
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
                                 '--trimsize_forward', 5,
