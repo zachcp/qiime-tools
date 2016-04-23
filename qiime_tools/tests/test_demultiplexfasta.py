@@ -102,6 +102,29 @@ def test_demultiplexfasta_maxdistance():
         for rec in records:
             assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
 
+        with runner.isolated_filesystem():
+            outfasta = "out.fasta"
+            outlogfile = "out.log"
+            result = runner.invoke(demultiplex,
+                                   ['--forward_fasta', fna1,
+                                    '--reverse_fasta', fna2,
+                                    '--barcodefile', barcodesfile,
+                                    '--barcodelength', 16,
+                                    '--outfile', outfasta,
+                                    '--logfile', outlogfile,
+                                    '--trimsize_forward', 5,
+                                    '--trimsize_reverse', 5,
+                                    '--max_mismatches', 5,
+                                    '--concatfirst', 'forward'])
+
+            # assert the output is the correct length and sequence
+            assert result.exit_code == 0
+            assert set(os.listdir(".")) == {"out.log", "out.fasta"}
+            records = [r for r in SeqIO.parse(open(outfasta, 'r'), 'fasta')]
+            assert len(records) == 4
+            for rec in records:
+                assert (len(rec.seq) == 20)  # 5 + 10 spacer + 5
+
 
 
 
@@ -163,7 +186,7 @@ def test_demultiplexfasta_parallel_basic():
                                ['--forward_fasta', fna1,
                                 '--reverse_fasta', fna2,
                                 '--barcodefile', barcodesfile,
-                                '--splitsize', 4,
+                                '--splitsize', 2,
                                 '--barcodelength', 16,
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
@@ -175,9 +198,9 @@ def test_demultiplexfasta_parallel_basic():
 
         #assert the output is the correct length and sequence
         assert result.exit_code == 0
-        assert set(os.listdir(".")) == set(["out.log","out.fasta"])
+        assert set(os.listdir(".")) == {"out.log","out.fasta"}
         records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
-        assert len(records) == 3
+        assert len(records) == 2
         for rec in records:
             assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
 

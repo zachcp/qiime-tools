@@ -13,7 +13,7 @@ import sys
 from Bio import SeqIO
 from collections import defaultdict
 from subprocess import call
-from cytoolz.dicttoolz import assoc, merge
+from cytoolz.dicttoolz import assoc
 from cytoolz.functoolz import thread_first
 from multiprocess import Pool
 from schema import Schema, And, Or
@@ -66,12 +66,11 @@ def fasta_to_dict(fasta):
 
 def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     "check for barcode and update sample data"
-    #print(barcodedict)
-    print(fastadict)
+
     samplematch = None
     barcodedata = None
     spacermismatch = False
-    hdist = 0
+    barcode_distance = 0
     halfbarcode = int(barcodelength/2)
     fseq = fastadict['forward_sequence']
     rseq = fastadict['reverse_sequence']
@@ -79,7 +78,6 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
 
     #check for perfect match first:
     for	sample, samplebarcodedict in barcodedict.items():
-        print(barcode, sample, samplebarcodedict['barcode'])
         if samplebarcodedict['barcode'] == barcode:
             samplematch = sample
             barcodedata = samplebarcodedict
@@ -89,6 +87,7 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
         for	sample, samplebarcodedict in barcodedict.items():
             hdist = hamdist(samplebarcodedict['barcode'], barcode)
             if hdist <= maxdistance:
+                barcode_distance = hdist
                 samplematch = sample
                 barcodedata = samplebarcodedict
 
@@ -116,7 +115,7 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
                         (assoc, "sample", samplematch),
                         (assoc, "spacermismatch", spacermismatch),
                         (assoc, "barcode", barcode),
-                        (assoc, "barcode_distance", hdist),
+                        (assoc, "barcode_distance", barcode_distance),
                         (assoc, "forward_sequence", fseq),
                         (assoc, "reverse_sequence", rseq))
 
@@ -277,6 +276,7 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
 
 
     splitcommand = which_split()
+    print("Using the {} split commmand".format(splitcommand))
 
     #generate the split files nad check for length equivalency
     print("Splitting the Forward Fasta File, {}".format(forward_fasta))
@@ -286,8 +286,8 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     call("cat {} | {} -l {} - {}".format(reverse_fasta, splitcommand, splitsize,"reverse_"),shell=True)
 
     #get the names of the split files and zip them together
-    split_files_forward = sorted( glob.glob("forward_*"))
-    split_files_reverse = sorted( glob.glob("reverse_*"))
+    split_files_forward = sorted(glob.glob("forward_*"))
+    split_files_reverse = sorted(glob.glob("reverse_*"))
     split_outfiles      = sorted([x.replace("forward_","tempout_")    for x in split_files_forward])
     split_logfiles      = sorted([x.replace("forward_","logfileout_") for x in split_files_forward])
 
@@ -318,8 +318,8 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
 
     print(os.listdir('.'))
     print("cleaning up the split files....")
-    p.imap(os.remove, split_files_forward)
-    p.imap(os.remove, split_files_reverse)
+    p.map(os.remove, split_files_forward)
+    p.map(os.remove, split_files_reverse)
 
 
     print("Concatenating the results to {}".format(outfile))
@@ -329,8 +329,11 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     call("cat logfileout_*  > {}".format(logfile), shell=True)
 
     print("cleaning up the temporary files....")
-    for ofile in split_outfiles: os.remove(ofile)
-    for lfile in split_logfiles: os.remove(lfile)
+    for ofile in split_outfiles + split_logfiles:
+        try:
+            os.remove(ofile)
+        except:
+            pass
 
     # check output filesize is not zero which will happen
     # if something went wrong with the splitting step due to,say,
@@ -413,7 +416,6 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
     for result in fastadata:
         #sampledata
-        #print(result)
         forward_id   = result['forward_id']
         forward_desc = result["forward_desc"]
         forward_seq  = result["forward_sequence"]
