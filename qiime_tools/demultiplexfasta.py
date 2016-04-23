@@ -1,11 +1,11 @@
-#from __future__ import print_function
-#from future import standard_library
-#standard_library.install_aliases()
-#from builtins import zip
+#
+#
+#
+#
+#
 
 import click
 import glob
-#import multiprocessing
 import os
 import shutil
 import sys
@@ -13,10 +13,40 @@ import sys
 from Bio import SeqIO
 from collections import defaultdict
 from subprocess import call
-from cytoolz.dicttoolz import assoc
+from cytoolz.dicttoolz import assoc, merge
 from cytoolz.functoolz import thread_first
 from multiprocess import Pool
+from schema import Schema, And, Or
 
+
+##################################################
+## Schemas
+barcodeSchema = Schema(
+    {"barcode":         And(str, lambda s:  12 < len(s) < 30),
+     "forward_barcode": And(str, lambda s:  6  < len(s) < 15),
+     "forward_spacer":  And(str, lambda s:  0  < len(s) < 10),
+     "forward_primer":  And(str, lambda s:  6  < len(s) < 15),
+     "reverse_barcode": And(str, lambda s:  12 < len(s) < 30),
+     "reverse_spacer":  And(str, lambda s:  0  < len(s) < 10),
+     "reverse_primer":  And(str, lambda s:  6  < len(s) < 15)
+     })
+
+fastadataSchema = Schema(
+    {"forward_id":       str,
+     "forward_desc":     str,
+     "forward_sequence": str,
+     "reverse_id":       str,
+     "reverse_desc":     str,
+     "reverse_sequence": str,
+     "sample" :          Or(str, None),
+     "barcode":          And(str, lambda s:  12 < len(s) < 30),
+     "brcd_dist":        int,
+     "tooshort":         bool,
+     "spacermismatch":   bool
+     })
+
+
+#####
 @click.command()
 @click.option('--forward_fasta', prompt=True,help="name of the fasta forward file")
 @click.option('--reverse_fasta', prompt=True, help="name of the fasta reverse file")
@@ -40,8 +70,8 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                          reverse_complement_forward, reverse_complement_reverse, concatfirst):
     """
     A wrapper for `demultiplex_fasta` that splitting the input fasta file and
-    does the work on the pieces. Note that inputs are strings not Clikc.Files as is
-    the case for the singel script.
+    does the work on the pieces. Note that inputs are strings not Click.Files as is
+    the case for the demultiplex_fasta single script.
 
     :param forward_fasta:
     :param reverse_fasta:
@@ -148,8 +178,8 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     call("cat logfileout_*  > {}".format(logfile), shell=True)
 
     print("cleaning up the temporary files....")
-    p.imap(os.remove, split_outfiles)
-    p.imap(os.remove, split_logfiles)
+    for ofile in split_outfiles: os.remove(ofile)
+    for lfile in split_logfiles: os.remove(lfile)
 
     # check output filesize is not zero which will happen
     # if something went wrong with the splitting step due to,say,
@@ -257,7 +287,7 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
             if reverse_complement_reverse:
                 reverse_seq = reversecomplement(reverse_seq)
 
-            #concat seuences in correct orientation
+            #concat sequences in correct orientation
             if concatfirst == "forward":
                 allseq = forward_seq + spacersequence + reverse_seq
             elif concatfirst == "reverse":
@@ -273,7 +303,7 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
         def shouldwritesample(sample=sample,includeshort=includeshort,tooshort=tooshort,
                               brcd_dist=brcd_dist,max_mismatches=max_mismatches):
-            " encapsulate sequence-writing logic in a function"
+            "encapsulate sequence-writing logic in a function"
 
             # Only use sequences samples that have a sample
             if not sample:
@@ -328,6 +358,8 @@ def fasta_to_dict(fasta):
 def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     "check for barcode and update sample data"
     samplematch = None
+    barcodedata = {}
+    spacermismatch = False
     hdist = 0
     halfbarcode = int(barcodelength/2)
     fseq = fastadict['forward_sequence']
@@ -335,24 +367,45 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     barcode = fseq[:halfbarcode] + rseq[:halfbarcode]
 
     #check for perfect match first:
-    for	sample, samplebarcode in barcodedict.items():
-        if samplebarcode == barcode:
+    for	sample, samplebarcodedict in barcodedict.items():
+        if samplebarcodedict['barcode'] == barcode:
             samplematch = sample
+            barcodedata = samplebarcodedict
 
     #if not choose closest
     if not samplematch:
-        for	sample, samplebarcode in barcodedict.items():
-            hdist = hamdist(samplebarcode, barcode)
+        for	sample, samplebarcodedict in barcodedict.items():
+            hdist = hamdist(samplebarcodedict['barcode'], barcode)
             if hdist <= maxdistance:
                 samplematch = sample
+                barcodedata = samplebarcodedict
+
+    # trim the sequences after checking the spacer sequence between the barcode and the primer
+    fseq = fseq[halfbarcode:]
+    rseq = fseq[halfbarcode:]
+    if not barcodedata == {}:
+        forward_spacer = barcodedata['forward_spacer']
+        reverse_spacer = barcodedata['forward_spacer']
+        if fseq.startswith(forward_spacer):
+            fseq = fseq[len(forward_spacer)]
+        else:
+            fseq = fseq[len(forward_spacer)]
+            spacermismatch = True
+        if rseq.startswith(reverse_spacer):
+            rseq = rseq[len(reverse_spacer)]
+        else:
+            rseq = rseq[len(reverse_spacer)]
+            spacermismatch = True
 
     # return updated values
     return thread_first(fastadict,
+                        (merge, barcodedata),
                         (assoc, "sample", samplematch),
+                        (assoc, "spacermismatch", spacermismatch),
                         (assoc, "barcode", barcode),
                         (assoc, "barcode_distance", hdist),
-                        (assoc, "forward_sequence", fseq[halfbarcode:]),
-                        (assoc, "reverse_sequence", rseq[halfbarcode:]))
+                        (assoc, "forward_sequence", fseq),
+                        (assoc, "reverse_sequence", rseq))
 
 def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
     "subset sequence and indicate if short"
@@ -370,6 +423,28 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
                         (assoc, "reverse_sequence", rseq[:trimsize_reverse]))
 
 
+# def process_barcodefile(file, barcodelength):
+#     "Take a barcode file and return the barcode"
+#     data = {}
+#     lines = open(file,'r').readlines()
+#     for idx, line in enumerate(lines):
+#         if idx > 0:
+#             try:
+#                 sample, barcode  = line.split()
+#             except:
+#                 sample, barcode, *othercols = line.split()
+#
+#             data[sample] = barcode
+#
+#     #check data
+#     assert(data != {})
+#     for k,v in data.items():
+#         # check barcode lengths
+#         if not len(v) == barcodelength:
+#             raise ValueError("Barcode {} is not of expected length {}".format(v, barcodelength))
+#
+#     return data
+
 def process_barcodefile(file, barcodelength):
     "Take a barcode file and return the barcode"
     data = {}
@@ -377,18 +452,32 @@ def process_barcodefile(file, barcodelength):
     for idx, line in enumerate(lines):
         if idx > 0:
             try:
-                sample, barcode  = line.split()
+                sample, barcode, \
+                forward_barcode, forward_spacer, forward_primer, \
+                reverse_barcode, reverse_spacer, reverse_primer, *othercols = line.split()
             except:
-                sample, barcode, *othercols = line.split()
+                raise ValueError("Barcode File must have a minimum of 8 data columns")
 
-            data[sample] = barcode
+            # validate the barcode data
+            barcodedata = barcodeSchema.validate(
+                            {"barcode":        barcode,
+                            "forward_barcode": forward_barcode,
+                            "forward_spacer":  forward_spacer,
+                            "forward_primer":  forward_primer,
+                            "reverse_barcode": reverse_barcode,
+                            "reverse_spacer":  reverse_spacer,
+                            "reverse_primer":  reverse_primer})
+
+            data[sample] = barcodedata
 
     #check data
     assert(data != {})
     for k,v in data.items():
         # check barcode lengths
-        if not len(v) == barcodelength:
-            raise ValueError("Barcode {} is not of expected length {}".format(v, barcodelength))
+        if not len(v['barcode']) == barcodelength:
+            raise ValueError("Barcode {}, of sample {} is not of expected length {}".format(v['barcode'], k, barcodelength))
+        #check forward and reverse barcodes
+        assert(v['forward_barcode'] + v['reverse_barcode'] == v['barcode'])
 
     return data
 
@@ -402,7 +491,7 @@ def hamdist(str1, str2):
 
 
 def which_split():
-    "get aplit command using gpslit from homebrew on mac osx"
+    "get split command using gpslit from homebrew on mac osx"
 
     if sys.platform == "darwin":
         #check for homebrew coreutils
