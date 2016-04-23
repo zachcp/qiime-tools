@@ -5,6 +5,7 @@ have been labelled by sample id.
 
 """
 import glob
+import pytest
 import os
 from qiime_tools.demultiplexfasta import demultiplex, demultiplex_parallel, process_barcodefile
 from Bio import SeqIO
@@ -21,6 +22,7 @@ fna1 = fixname("data/fna1.fasta")
 fna2 = fixname("data/fna2.fasta")
 #barcodesfile = fixname("data/smallbarcodes.txt")
 barcodesfile = fixname("data/smallbarcodes2.txt")
+badbarcodesfile = fixname("data/smallbarcodes3.txt")
 
 ########################################################################################################################
 ########################################################################################################################
@@ -49,6 +51,12 @@ def test_process_barcodefile():
                                     'reverse_barcode': 'GGGGGGGG',
                                     'barcode': 'TTTTTTTTGGGGGGGG',
                                     'forward_spacer': 'ACT'})
+
+def test_process_barcodefile_nonuniquebarcodes():
+    "badbarcodes ahs duplicate barcodes so it should trip an error"
+    with pytest.raises(ValueError):
+        process_barcodefile(badbarcodesfile, 16)
+
 
 def test_demultiplexfasta_basic():
     "test basic demultiplexing"

@@ -167,6 +167,10 @@ def process_barcodefile(file, barcodelength):
         #check forward and reverse barcodes
         assert(v['forward_barcode'] + v['reverse_barcode'] == v['barcode'])
 
+    barcodes = [v['barcode'] for k,v in data.items()]
+    if not len(barcodes) == len(set(barcodes)):
+        raise ValueError("Barcode Values are not Unique. Please Check your Barcoding File")
+
     return data
 
 def hamdist(str1, str2):
