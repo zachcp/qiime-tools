@@ -19,7 +19,8 @@ def fixname(filename):
 #files
 fna1 = fixname("data/fna1.fasta")
 fna2 = fixname("data/fna2.fasta")
-barcodesfile = fixname("data/smallbarcodes.txt")
+#barcodesfile = fixname("data/smallbarcodes.txt")
+barcodesfile = fixname("data/smallbarcodes2.txt")
 
 ########################################################################################################################
 ########################################################################################################################
@@ -32,9 +33,20 @@ def test_sequences():
     assert len(recs_F) == 4
     assert len(recs_R) == 4
 
+# def test_process_barcodefile():
+#     barcodes = process_barcodefile(barcodesfile, 8)
+#     assert(barcodes["Sample1"] == "AAAAAAAA")
+
 def test_process_barcodefile():
-    barcodes = process_barcodefile(barcodesfile, 8)
-    assert(barcodes["Sample1"] == "AAAAAAAA")
+    barcodes = process_barcodefile(barcodesfile, 16)
+    assert(barcodes["Sample1"] == {  "barcode":         "AAAAAAAACCCCCCCC",
+                                     "forward_barcode": "AAAAAAAA",
+                                     "forward_spacer":  "T",
+                                     "forward_primer":  "CCCTCTCTCTCCCCCCNN",
+                                     "reverse_barcode": "CCCCCCCC",
+                                     "reverse_spacer":  "GA",
+                                     "reverse_primer":  "CCCNNNGCTCCCNNNGCT"})
+
 
 def test_demultiplexfasta_basic():
     "run fastqconcat and check that the sequences have been concatenated."

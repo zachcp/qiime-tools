@@ -22,13 +22,13 @@ from schema import Schema, And, Or
 ##################################################
 ## Schemas
 barcodeSchema = Schema(
-    {"barcode":         And(str, lambda s:  12 < len(s) < 30),
-     "forward_barcode": And(str, lambda s:  6  < len(s) < 15),
-     "forward_spacer":  And(str, lambda s:  0  < len(s) < 10),
-     "forward_primer":  And(str, lambda s:  6  < len(s) < 15),
-     "reverse_barcode": And(str, lambda s:  12 < len(s) < 30),
-     "reverse_spacer":  And(str, lambda s:  0  < len(s) < 10),
-     "reverse_primer":  And(str, lambda s:  6  < len(s) < 15)
+    {"barcode":         And(str, lambda s:  12 <= len(s) <= 30),
+     "forward_barcode": And(str, lambda s:  6 <= len(s) <= 15),
+     "forward_spacer":  And(str, lambda s:  0 <= len(s) <= 10),
+     "forward_primer":  And(str, lambda s:  12 <= len(s) <= 25),
+     "reverse_barcode": And(str, lambda s:  6 <= len(s) <= 15),
+     "reverse_spacer":  And(str, lambda s:  0 <= len(s) <=10),
+     "reverse_primer":  And(str, lambda s:  12 <= len(s) <= 25)
      })
 
 fastadataSchema = Schema(
@@ -452,8 +452,7 @@ def process_barcodefile(file, barcodelength):
     for idx, line in enumerate(lines):
         if idx > 0:
             try:
-                sample, barcode, \
-                forward_barcode, forward_spacer, forward_primer, \
+                sample, barcode, forward_barcode, forward_spacer, forward_primer, \
                 reverse_barcode, reverse_spacer, reverse_primer, *othercols = line.split()
             except:
                 raise ValueError("Barcode File must have a minimum of 8 data columns")
