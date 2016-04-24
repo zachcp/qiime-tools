@@ -320,7 +320,7 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     for r in results:
         print("Processing split file.")
 
-    print(os.listdir('.'))
+    #print(os.listdir('.'))
     print("cleaning up the split files....")
     p.map(os.remove, split_files_forward)
     p.map(os.remove, split_files_reverse)
