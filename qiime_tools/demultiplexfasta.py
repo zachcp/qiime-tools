@@ -9,6 +9,7 @@ import glob
 import os
 import shutil
 import sys
+import csv
 
 from Bio import SeqIO
 from collections import defaultdict
@@ -137,16 +138,15 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
 def process_barcodefile(file, barcodelength):
     "Take a barcode file and return the barcode"
     data = {}
-    lines = open(file,'r').readlines()
-    for idx, line in enumerate(lines):
+    lines = open(file,'r')
+    reader = csv.reader(lines.readlines(), delimiter='\t')
+
+    for idx, line in enumerate(reader):
         if idx > 0:
             try:
                 sample, barcode, forward_barcode, forward_spacer, forward_primer, \
-                reverse_barcode, reverse_spacer, reverse_primer, *othercols = line.split()
-
-                if forward_spacer is None: forward_spacer = ""
-                if reverse_spacer is None: reverse_spacer = ""
-
+                reverse_barcode, reverse_spacer, reverse_primer, *othercols = line
+                
             except:
                 raise ValueError("Barcode File must have a minimum of 8 data columns")
 
