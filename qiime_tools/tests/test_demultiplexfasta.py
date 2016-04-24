@@ -57,6 +57,27 @@ def test_process_barcodefile_nonuniquebarcodes():
     with pytest.raises(ValueError):
         process_barcodefile(badbarcodesfile, 16)
 
+def test_process_barcodefile_experimentalbarcodefile():
+    "test a real barcode file"
+    experimentalbarcodefile = fixname("data/MappingFile_AD.txt")
+    barcodes = process_barcodefile(experimentalbarcodefile, 18)
+    assert (barcodes["DFD001207.r01.w0000.pAD1"] == {
+        "barcode": "TCCGTCTAAAGTGGTCAA",
+        "forward_barcode": "TCCGTCTAA",
+        "forward_spacer": "",
+        "forward_primer": "GCSTACSYSATSTACACSTCSGG",
+        "reverse_barcode": "AGTGGTCAA",
+        "reverse_spacer": "",
+        "reverse_primer": "SASGTCVCCSGTSCGGTA"})
+    assert (barcodes["DFD001298.r01.w0000.pAD1"] == {
+        "barcode": "AAGACGGATAGTGGTCAA",
+        "forward_barcode": "AAGACGGAT",
+        "forward_spacer": "C",
+        "forward_primer": "GCSTACSYSATSTACACSTCSGG",
+        "reverse_barcode": "AGTGGTCAA",
+        "reverse_spacer": "",
+        "reverse_primer": "SASGTCVCCSGTSCGGTA"})
+
 
 def test_demultiplexfasta_basic():
     "test basic demultiplexing"
@@ -69,6 +90,35 @@ def test_demultiplexfasta_basic():
                                 '--reverse_fasta', fna2,
                                 '--barcodefile', barcodesfile,
                                 '--barcodelength', 16,
+                                '--outfile', outfasta,
+                                '--logfile', outlogfile,
+                                '--trimsize_forward', 5,
+                                '--trimsize_reverse', 5,
+                                '--concatfirst', 'forward'])
+
+        #assert the output is the correct length and sequence
+        assert result.exit_code == 0
+        assert set(os.listdir(".")) == {"out.log", "out.fasta"}
+        records = [r for r in SeqIO.parse(open(outfasta,'r'),'fasta')]
+        assert len(records) == 2
+        for rec in records:
+            assert(len(rec.seq) == 20 ) # 5 + 10 spacer + 5
+
+def test_demultiplexfasta_basic_experimentaldata():
+    "test basic demultiplexing on some real data"
+    runner=CliRunner()
+    experimentalbarcodefile = fixname("data/MappingFile_AD.txt")
+    forwardfasta = fixname("data/smallfasta1.fna")
+    reversefasta = fixname("data/smallfasta2.fna")
+
+    with runner.isolated_filesystem():
+        outfasta   = "out.fasta"
+        outlogfile = "out.log"
+        result = runner.invoke(demultiplex,
+                               ['--forward_fasta', forwardfasta,
+                                '--reverse_fasta', reversefasta,
+                                '--barcodefile', experimentalbarcodefile,
+                                '--barcodelength', 18,
                                 '--outfile', outfasta,
                                 '--logfile', outlogfile,
                                 '--trimsize_forward', 5,

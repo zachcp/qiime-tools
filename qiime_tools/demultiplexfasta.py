@@ -68,13 +68,13 @@ def fasta_to_dict(fasta):
 def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     "check for barcode and update sample data"
 
-    samplematch = None
-    barcodedata = None
-    spacermismatch = False
+    samplematch      = None
+    barcodedata      = None
+    spacermismatch   = False
     barcode_distance = 0
-    halfbarcode = int(barcodelength/2)
-    fseq = fastadict['forward_sequence']
-    rseq = fastadict['reverse_sequence']
+    halfbarcode      = int(barcodelength/2)
+    fseq    = fastadict['forward_sequence']
+    rseq    = fastadict['reverse_sequence']
     barcode = fseq[:halfbarcode] + rseq[:halfbarcode]
 
     #check for perfect match first:
@@ -96,7 +96,7 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
     fseq = fseq[halfbarcode:]
     rseq = fseq[halfbarcode:]
 
-    if barcodedata:
+    if barcodedata is not None:
         forward_spacer = barcodedata['forward_spacer']
         reverse_spacer = barcodedata['reverse_spacer']
 
@@ -130,6 +130,7 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
     if len(rseq) < trimsize_reverse:
         tooshort= True
 
+
     return thread_first(fastadict,
                         (assoc, "tooshort", tooshort),
                         (assoc, "forward_sequence", fseq[:trimsize_forward]),
@@ -146,7 +147,7 @@ def process_barcodefile(file, barcodelength):
             try:
                 sample, barcode, forward_barcode, forward_spacer, forward_primer, \
                 reverse_barcode, reverse_spacer, reverse_primer, *othercols = line
-                
+
             except:
                 raise ValueError("Barcode File must have a minimum of 8 data columns")
 
@@ -424,16 +425,17 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
     for result in fastadata:
         #sampledata
-        forward_id   = result['forward_id']
-        forward_desc = result["forward_desc"]
-        forward_seq  = result["forward_sequence"]
-        reverse_id   = result["reverse_id"]
-        reverse_desc = result["reverse_desc"]
-        reverse_seq  = result["reverse_sequence"]
-        sample       = result["sample"]
-        barcode      = result["barcode"]
-        brcd_dist    = result["barcode_distance"]
-        tooshort     = result["tooshort"]
+        forward_id    = result['forward_id']
+        forward_desc  = result["forward_desc"]
+        forward_seq   = result["forward_sequence"]
+        reverse_id    = result["reverse_id"]
+        reverse_desc  = result["reverse_desc"]
+        reverse_seq   = result["reverse_sequence"]
+        sample        = result["sample"]
+        barcode       = result["barcode"]
+        brcd_dist     = result["barcode_distance"]
+        tooshort       = result["tooshort"]
+        spacermismatch = result['spacermismatch']
 
         #accounting
         count += 1
@@ -451,6 +453,7 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
             if reverse_complement_reverse:
                 reverse_seq = reversecomplement(reverse_seq)
 
+
             #concat sequences in correct orientation
             if concatfirst == "forward":
                 allseq = forward_seq + spacersequence + reverse_seq
@@ -460,8 +463,8 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
                 raise ValueError("concatfirst must be 'forward' or 'reverse' ")
 
             # write out sequences
-            fastaheader = "{}.{}.{:06d} barcode:{} barcodemismatches:{}".format(
-                sample, forward_id, count, barcode, brcd_dist)
+            fastaheader = "{}.{}.{:06d} barcode:{} barcodemismatches:{} spacermismatch: {}".format(
+                sample, forward_id, count, barcode, brcd_dist, str(spacermismatch))
 
             outfile.write(">{}\n{}\n".format(fastaheader,allseq))
 
