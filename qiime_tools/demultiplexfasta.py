@@ -143,6 +143,10 @@ def process_barcodefile(file, barcodelength):
             try:
                 sample, barcode, forward_barcode, forward_spacer, forward_primer, \
                 reverse_barcode, reverse_spacer, reverse_primer, *othercols = line.split()
+
+                if forward_spacer is None: forward_spacer = ""
+                if reverse_spacer is None: reverse_spacer = ""
+
             except:
                 raise ValueError("Barcode File must have a minimum of 8 data columns")
 
