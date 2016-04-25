@@ -36,7 +36,8 @@ setup(
         'cytoolz',
         'pandas',
         'requests',
-        'multiprocess'
+        'multiprocess',
+        'uniprot'
     ],
     packages=find_packages(),
     entry_points='''
