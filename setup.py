@@ -35,7 +35,8 @@ setup(
         'Biopython >=1.6.5',
         'cytoolz',
         'pandas',
-        'requests'
+        'requests',
+        'multiprocess'
     ],
     packages=find_packages(),
     entry_points='''
