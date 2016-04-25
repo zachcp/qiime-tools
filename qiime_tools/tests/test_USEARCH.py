@@ -2,9 +2,10 @@
 """
 This file test the parallel_split_libraries_fastq script.
 """
+import os
 import pandas as pd
 from test_fastqconcat import fixname
-from qiime_tools.mergeOTU_UC import UC_to_taxtable
+from qiime_tools.USEARCH import UC_to_taxtable, load_ucfile
 
 from click.testing import CliRunner
 
@@ -21,6 +22,13 @@ ucfile = fixname("data/test1.uc")
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
+
+def fixtargetcolumns(row):
+    if row.target == "*":
+        return row.query
+    else:
+        return row.target
+
 
 def test_UC_data():
     df = load_ucfile(ucfile)
