@@ -96,7 +96,7 @@ def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, m
     print("Finished Demultiplexing")
 
 
-def shouldwrite(fqdict, barcodedistance, filterspacermismatch=False, printout=True):
+def shouldwrite(fqdict, barcodedistance, filterspacermismatch=False, printout=False):
     "do we want to write their record?"
     if printout:
         print(fqdict)
@@ -121,7 +121,6 @@ def check_barcode_fastq(fastqs, barcodedict, barcodelength, maxdistance):
     #get data
     fq, rq  = fastqs
     barcode = str(fq[:halfbarcode].seq) + str(rq[:halfbarcode].seq)
-    print(barcode)
 
     #check for perfect match first:
     for	sample, samplebarcodedict in barcodedict.items():
