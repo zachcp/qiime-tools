@@ -47,15 +47,14 @@ def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, m
     """
 
     # get the barcode and fasta data
-    barcodes   = process_barcodefile(barcodefile, barcodelength)
+    barcodes   = process_barcodefile(barcodefile, barcodelength, checkbarcodes=checkbarcodes)
     fastqs     = zip(SeqIO.parse(forward_fastq, 'fastq'), SeqIO.parse(reverse_fastq,'fastq'))
 
     #check to see if barcodes match and return a dictionary of values
     checked_fastqs = (check_barcode_fastq(fastqs=fastq,
                                           barcodedict=barcodes,
                                           barcodelength=barcodelength,
-                                          maxdistance=max_mismatches,
-                                          checkbarcodes=checkbarcodes) for fastq in fastqs)
+                                          maxdistance=max_mismatches) for fastq in fastqs)
 
     samples = 0
     mismatched_samples = 0

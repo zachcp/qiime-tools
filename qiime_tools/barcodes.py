@@ -62,7 +62,7 @@ def process_barcodefile(file, barcodelength, checkbarcodes=True):
                 raise ValueError("Barcode File must have a minimum of 8 data columns")
 
             # validate the barcode data
-            barcodedata =  {"barcode":        barcode,
+            barcodedata =  {"barcode":         barcode,
                             "forward_barcode": forward_barcode,
                             "forward_spacer":  forward_spacer,
                             "forward_primer":  forward_primer,
