@@ -29,7 +29,7 @@ class PyTest(TestCommand):
 
 setup(
     name='qiime-tools',
-    version='0.5.7',
+    version='0.5.8',
     install_requires=[
         'Click >= 0.6.0',
         'Biopython >=1.6.5',
@@ -37,12 +37,13 @@ setup(
         'pandas',
         'requests',
         'multiprocess',
-        'uniprot'
+        'uniprot_tools'
     ],
     packages=find_packages(),
     entry_points='''
         [console_scripts]
         demultiplexfasta = qiime_tools.demultiplexfasta:demultiplex
+        demultiplexfastq = qiime_tools.demultiplexfastq:demultiplexfastq
         demultiplexfasta_parallel = qiime_tools.demultiplexfasta_parallel:demultiplex_parallel
         fastqconcat = qiime_tools.fastq_concat:fastqconcat
         filterfasta_by_length = qiime_tools.filter_by_length:filter_by_length
