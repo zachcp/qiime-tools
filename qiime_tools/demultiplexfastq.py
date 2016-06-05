@@ -23,7 +23,7 @@ from .barcodes import process_barcodefile, hamdist
 @click.option('--max_mismatches', type=click.INT, default=1, help="maximum difference between sequence and barcode")
 @click.option('--outdirectory', type=click.Path(exists=False, dir_okay=True), prompt=True, help="output directory file")
 @click.option('--logfile', type=click.File('w'), prompt=True, help="outputlogfile")
-@click.option('--checkbarcodes', default=True, help="check the barcodes file")
+@click.option('--checkbarcodes/--no-checkbarcodes', default=True, help="check the barcodes file")
 def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, max_mismatches, outdirectory, logfile, checkbarcodes):
     """
     Demultiplexing paired Fastq files with a barcode file.
