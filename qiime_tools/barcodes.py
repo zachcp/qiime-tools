@@ -76,13 +76,14 @@ def process_barcodefile(file, barcodelength, checkbarcodes=True):
             data[sample] = barcodedata
 
     #check data
-    assert(data != {})
-    for k,v in data.items():
-        # check barcode lengths
-        if not len(v['barcode']) == barcodelength:
-            raise ValueError("Barcode {}, of sample {} is not of expected length {}".format(v['barcode'], k, barcodelength))
-        #check forward and reverse barcodes
-        assert(v['forward_barcode'] + v['reverse_barcode'] == v['barcode'])
+    if checkbarcodes:
+        assert(data != {})
+        for k,v in data.items():
+            # check barcode lengths
+            if not len(v['barcode']) == barcodelength:
+                raise ValueError("Barcode {}, of sample {} is not of expected length {}".format(v['barcode'], k, barcodelength))
+            #check forward and reverse barcodes
+            assert(v['forward_barcode'] + v['reverse_barcode'] == v['barcode'])
 
     barcodes = [v['barcode'] for k,v in data.items()]
     if not len(barcodes) == len(set(barcodes)):
