@@ -17,13 +17,14 @@ from .barcodes import process_barcodefile, hamdist
 
 @click.command()
 @click.option('--forward_fastq', type=click.Path(exists=True), prompt=True,help="name of the fastq forward file")
-@click.option('--reverse_fastq',  type=click.Path(exists=True), prompt=True, help="name of the fastq reverse file")
+@click.option('--reverse_fastq', type=click.Path(exists=True), prompt=True, help="name of the fastq reverse file")
 @click.option('--barcodefile', type=click.Path(exists=True), prompt=True,help="name of the barcode file")
 @click.option('--barcodelength', type=click.INT, prompt=True, help="how long is the barcode")
 @click.option('--max_mismatches', type=click.INT, default=1, help="maximum difference between sequence and barcode")
 @click.option('--outdirectory', type=click.Path(exists=False, dir_okay=True), prompt=True, help="output directory file")
 @click.option('--logfile', type=click.File('w'), prompt=True, help="outputlogfile")
-def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, max_mismatches, outdirectory, logfile):
+@click.option('--checkbarcodes', default=True, help="check the barcodes file")
+def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, max_mismatches, outdirectory, logfile, checkbarcodes):
     """
     Demultiplexing paired Fastq files with a barcode file.
 
@@ -53,7 +54,8 @@ def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, m
     checked_fastqs = (check_barcode_fastq(fastqs=fastq,
                                           barcodedict=barcodes,
                                           barcodelength=barcodelength,
-                                          maxdistance=max_mismatches) for fastq in fastqs)
+                                          maxdistance=max_mismatches,
+                                          checkbarcodes=checkbarcodes) for fastq in fastqs)
 
     samples = 0
     mismatched_samples = 0

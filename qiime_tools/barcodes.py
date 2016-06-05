@@ -38,7 +38,7 @@ fastadataSchema = Schema(
      })
 
 
-def process_barcodefile(file, barcodelength):
+def process_barcodefile(file, barcodelength, checkbarcodes=True):
     "Take a barcode file and return the barcode"
 
     data = {}
@@ -62,14 +62,16 @@ def process_barcodefile(file, barcodelength):
                 raise ValueError("Barcode File must have a minimum of 8 data columns")
 
             # validate the barcode data
-            barcodedata = barcodeSchema.validate(
-                            {"barcode":        barcode,
+            barcodedata =  {"barcode":        barcode,
                             "forward_barcode": forward_barcode,
                             "forward_spacer":  forward_spacer,
                             "forward_primer":  forward_primer,
                             "reverse_barcode": reverse_barcode,
                             "reverse_spacer":  reverse_spacer,
-                            "reverse_primer":  reverse_primer})
+                            "reverse_primer":  reverse_primer}
+
+            if checkbarcodes:
+                barcodedata = barcodeSchema.validate(barcodedata)
 
             data[sample] = barcodedata
 
