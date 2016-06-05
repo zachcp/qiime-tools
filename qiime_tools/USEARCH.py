@@ -241,7 +241,7 @@ def UC_to_taxtable(ucfile, outfile, namehandling):
     df = load_ucfile(ucfile)
 
     #remove the redundant "S" field
-    df = df[df.rectype != "S"]
+    df = df[df.rectype != "C"]
     df = df.reset_index()
 
     #fix targetnames

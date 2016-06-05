@@ -4,7 +4,6 @@ This file test the parallel_split_libraries_fastq script.
 """
 import os
 import pandas as pd
-from test_fastqconcat import fixname
 from qiime_tools.USEARCH import UC_to_taxtable, load_ucfile
 
 from click.testing import CliRunner
@@ -46,7 +45,8 @@ def test_UC_to_taxtable():
         outfile = "out.txt"
         result = runner.invoke(UC_to_taxtable,
                                ['--ucfile', ucfile,
-                                '--outfile', outfile])
+                                '--outfile', outfile,
+                                '--namehandling', "underscore2"])
 
         #assert the output is the correct length and sequence
         assert not result.exception
@@ -54,4 +54,5 @@ def test_UC_to_taxtable():
         assert(df.shape == (12,10))
         df  = pd.read_table(outfile)
         assert(df.shape == (10,2))
-        assert(df[[1]].sum() == 24917)
+        samplesum = df[[1]].sum()
+        assert(int(samplesum) == 24917)

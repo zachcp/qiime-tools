@@ -19,7 +19,7 @@ def processname(name, func):
 
     :param name: the name of a sample
     :param func: te processing function to handle the sample name
-    :return: the modifiedsaple output
+    :return: the modified sample output
     """
     if func == "underscore":
         return name.split("_")[0]
