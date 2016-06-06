@@ -17,10 +17,10 @@ barcodeSchema = Schema(
     {"barcode":         And(str, lambda s:  12 <= len(s) <= 30),
      "forward_barcode": And(str, lambda s:  6 <= len(s) <= 15),
      "forward_spacer":  And(str, lambda s:  0 <= len(s) <= 10),
-     "forward_primer":  And(str, lambda s:  12 <= len(s) <= 30),
+     "forward_primer":  And(str, lambda s:  12 <= len(s) <= 35),
      "reverse_barcode": And(str, lambda s:  6 <= len(s) <= 15),
      "reverse_spacer":  And(str, lambda s:  0 <= len(s) <=10),
-     "reverse_primer":  And(str, lambda s:  12 <= len(s) <= 30)
+     "reverse_primer":  And(str, lambda s:  12 <= len(s) <= 35)
      })
 
 fastadataSchema = Schema(
