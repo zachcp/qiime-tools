@@ -139,7 +139,7 @@ def check_barcode_fastq(fastqs, barcodedict, barcodelength, maxdistance):
 
     # trim the sequences after checking the spacer sequence between the barcode and the primer
     fq = fq[halfbarcode:]
-    rq = fq[halfbarcode:]
+    rq = rq[halfbarcode:]
 
     # handle length spacer
     if barcodedata is not None:
