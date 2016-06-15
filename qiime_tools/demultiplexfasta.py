@@ -146,9 +146,9 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
                         sample=sample,forward_id=forward_id, count=count, barcode=barcode, brcd_dist=brcd_dist):
 
             #do reverse complement if necessary
-            if reverse_complement_forward:
+            if reverse_complement_forward is True:
                 forward_seq = reversecomplement(forward_seq)
-            if reverse_complement_reverse:
+            if reverse_complement_reverse is True:
                 reverse_seq = reversecomplement(reverse_seq)
 
 
