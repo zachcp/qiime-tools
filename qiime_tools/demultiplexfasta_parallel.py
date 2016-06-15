@@ -77,11 +77,11 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                    outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse,
                        reverse_complement_forward, reverse_complement_reverse, concatfirst):
 
-        if reverse_complement_forward:
+        if reverse_complement_forward is True:
             revcompstring_F = "--reverse_complement_forward"
         else:
             revcompstring_F = "--no-reverse_complement_forward"
-        if reverse_complement_reverse:
+        if reverse_complement_reverse is True:
             revcompstring_R = "--reverse_complement_reverse"
         else:
             revcompstring_R = "--no-reverse_complement_reverse"
@@ -142,6 +142,7 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                                     reverse_complement_forward = reverse_complement_forward,
                                     reverse_complement_reverse = reverse_complement_reverse,
                                     concatfirst=concatfirst)
+        print(callstring)
         callstrings.append(callstring)
 
     #process the split files in parallel using multiprocessing

@@ -143,7 +143,7 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
         #write sample
         def writesample(forward_seq=forward_seq, reverse_seq=reverse_seq, concatfirst=concatfirst,
-                        sample=sample,forward_id=forward_id, count=count,barcode=barcode,brcd_dist=brcd_dist):
+                        sample=sample,forward_id=forward_id, count=count, barcode=barcode, brcd_dist=brcd_dist):
 
             #do reverse complement if necessary
             if reverse_complement_forward:
