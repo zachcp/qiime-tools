@@ -43,7 +43,7 @@ def which_split():
 @click.option('--trimsize_forward',type=click.INT, default=1000)
 @click.option('--trimsize_reverse',type=click.INT, default=1000)
 @click.option('--includeshort/--no-includeshort', default=False)
-@click.option('--spacersequence', default="NNNNNNNNNN")
+@click.option('--spacersequence', default="N")
 @click.option('--sampleindex', type=click.INT, default=1)
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--ncpus', type=click.INT, default=2, help="cpus to use")
@@ -84,7 +84,7 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                 --max_mismatches {} \
                 --trimsize_forward {} \
                 --trimsize_reverse {} \
-                --no-includeshort
+                --no-includeshort \
                 --spacersequence  {}
         """.format(forward_fasta,reverse_fasta, barcodefile,barcodelength,
                    outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse, spacersequence)

@@ -62,7 +62,7 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
 @click.option('--trimsize_forward',type=click.INT, default=1000)
 @click.option('--trimsize_reverse',type=click.INT, default=1000)
 @click.option('--includeshort/--no-includeshort', default=False)
-@click.option('--spacersequence', default="NNNNNNNNNN")
+@click.option('--spacersequence', default="N")
 @click.option('--sampleindex', type=click.INT, default=1)
 @click.option('--includeshort/--no-includeshort', default=False)
 def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
