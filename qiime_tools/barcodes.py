@@ -120,7 +120,7 @@ def check_barcode(fastadict, barcodedict, barcodelength, maxdistance):
 
     # trim the sequences after checking the spacer sequence between the barcode and the primer
     fseq = fseq[halfbarcode:]
-    rseq = fseq[halfbarcode:]
+    rseq = rseq[halfbarcode:]
 
     if barcodedata is not None:
         forward_spacer = barcodedata['forward_spacer']
