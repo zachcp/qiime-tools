@@ -47,12 +47,8 @@ def which_split():
 @click.option('--sampleindex', type=click.INT, default=1)
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--ncpus', type=click.INT, default=2, help="cpus to use")
-@click.option('--reverse_complement_forward/--no-reverse_complement_forward', default=False)
-@click.option('--reverse_complement_reverse/--no-reverse_complement_reverse', default=True)
-@click.option('--concatfirst', type=click.Choice(['forward', 'reverse']))
 def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
-                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize,ncpus,
-                         reverse_complement_forward, reverse_complement_reverse, concatfirst):
+                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize,ncpus,):
     """
     A wrapper for `demultiplex_fasta` that splitting the input fasta file and
     does the work on the pieces. Note that inputs are strings not Click.Files as is
@@ -74,17 +70,7 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     """
 
     def makecallstring(forward_fasta,reverse_fasta, barcodefile,barcodelength,
-                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse,
-                       reverse_complement_forward, reverse_complement_reverse, concatfirst):
-
-        if reverse_complement_forward is True:
-            revcompstring_F = "--reverse_complement_forward"
-        else:
-            revcompstring_F = "--no-reverse_complement_forward"
-        if reverse_complement_reverse is True:
-            revcompstring_R = "--reverse_complement_reverse"
-        else:
-            revcompstring_R = "--no-reverse_complement_reverse"
+                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse, spacersequence):
 
 
         return """
@@ -98,13 +84,10 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                 --max_mismatches {} \
                 --trimsize_forward {} \
                 --trimsize_reverse {} \
-                --no-includeshort \
-                {} \
-                {} \
-                --concatfirst={}
+                --no-includeshort
+                --spacersequence  {}
         """.format(forward_fasta,reverse_fasta, barcodefile,barcodelength,
-                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse,
-                   revcompstring_F,revcompstring_R, concatfirst)
+                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse, spacersequence)
 
 
     assert splitsize % 2 == 0
@@ -139,9 +122,7 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                                     max_mismatches   = max_mismatches,
                                     trimsize_forward = trimsize_forward,
                                     trimsize_reverse = trimsize_reverse,
-                                    reverse_complement_forward = reverse_complement_forward,
-                                    reverse_complement_reverse = reverse_complement_reverse,
-                                    concatfirst=concatfirst)
+                                    spacersequence   = spacersequence)
         print(callstring)
         callstrings.append(callstring)
 
