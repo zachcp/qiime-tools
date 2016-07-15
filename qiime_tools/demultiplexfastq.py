@@ -83,7 +83,7 @@ def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, m
             # if keepunassigned is true and sample is None, write ot Unassigned
             if sample is None:
                 sample = "Unassigned"
-                
+
             fqout = outdirectory + "/" + sample + "_F.fq"
             rqout = outdirectory + "/" + sample + "_R.fq"
 

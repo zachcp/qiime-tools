@@ -70,10 +70,10 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     :return:
     """
 
-    def makecallstring(forward_fasta,reverse_fasta, barcodefile,barcodelength,
+    def makecallstring(forward_fasta,reverse_fasta, barcodefile, barcodelength,
                    outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse, spacersequence, keepunassigned):
 
-        if keepunassigned:
+        if keepunassigned is True:
             assignstring = "--keepunassigned"
         else:
             assignstring = "--no-keepunassigned"
@@ -128,7 +128,8 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                                     max_mismatches   = max_mismatches,
                                     trimsize_forward = trimsize_forward,
                                     trimsize_reverse = trimsize_reverse,
-                                    spacersequence   = spacersequence)
+                                    spacersequence   = spacersequence,
+                                    keepunassigned   = keepunassigned)
         print(callstring)
         callstrings.append(callstring)
 
