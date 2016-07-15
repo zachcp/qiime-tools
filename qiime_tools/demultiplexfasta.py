@@ -64,9 +64,9 @@ def truncate_by_size(fastadict, trimsize_forward, trimsize_reverse):
 @click.option('--includeshort/--no-includeshort', default=False)
 @click.option('--spacersequence', default="N")
 @click.option('--sampleindex', type=click.INT, default=1)
-@click.option('--includeshort/--no-includeshort', default=False)
+@click.option('--keepunassigned/--no-keepunassigned', default=True)
 def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
-                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex):
+                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, keepunassigned):
     """
     Demultiplexing paired Fasta files with a barcode file.
 
@@ -146,6 +146,9 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
             allseq = forward_seq +  spacersequence + reversecomplement(reverse_seq)
 
             # write out sequences
+            if sample is None:
+                sample = "Unassigned"
+
             fastaheader = "{}.{}.{:06d} barcode:{} barcodemismatches:{} spacermismatch: {}".format(
                 sample, forward_id, count, barcode, brcd_dist, str(spacermismatch))
 
@@ -157,7 +160,10 @@ def demultiplex(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfil
 
             # Only use sequences samples that have a sample
             if not sample:
-                return False
+                if keepunassigned:
+                    return True
+                else:
+                    return False
 
             # Ignore short sequences if the flag is false
             if includeshort is False and tooshort is True:

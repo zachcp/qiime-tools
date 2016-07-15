@@ -45,10 +45,11 @@ def which_split():
 @click.option('--includeshort/--no-includeshort', default=False)
 @click.option('--spacersequence', default="N")
 @click.option('--sampleindex', type=click.INT, default=1)
+@click.option('--keepunassigned/--no-keepunassigned', default=True)
 @click.option('--splitsize', type=click.INT, default=100000, help="size (in lines) to split fastq")
 @click.option('--ncpus', type=click.INT, default=2, help="cpus to use")
 def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelength, outfile,logfile, max_mismatches,
-                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, splitsize,ncpus,):
+                trimsize_forward, trimsize_reverse, includeshort, spacersequence, sampleindex, keepunassigned, splitsize, ncpus):
     """
     A wrapper for `demultiplex_fasta` that splitting the input fasta file and
     does the work on the pieces. Note that inputs are strings not Click.Files as is
@@ -70,8 +71,12 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
     """
 
     def makecallstring(forward_fasta,reverse_fasta, barcodefile,barcodelength,
-                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse, spacersequence):
+                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse, spacersequence, keepunassigned):
 
+        if keepunassigned:
+            assignstring = "--keepunassigned"
+        else:
+            assignstring = "--no-keepunassigned"
 
         return """
         demultiplexfasta \
@@ -85,9 +90,10 @@ def demultiplex_parallel(forward_fasta, reverse_fasta, barcodefile, barcodelengt
                 --trimsize_forward {} \
                 --trimsize_reverse {} \
                 --no-includeshort \
+                {} \
                 --spacersequence  {}
         """.format(forward_fasta,reverse_fasta, barcodefile,barcodelength,
-                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse, spacersequence)
+                   outfile, logfile, max_mismatches, trimsize_forward,trimsize_reverse, assignstring, spacersequence)
 
 
     assert splitsize % 2 == 0
