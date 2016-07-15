@@ -24,7 +24,9 @@ from .barcodes import process_barcodefile, hamdist
 @click.option('--outdirectory', type=click.Path(exists=False, dir_okay=True), prompt=True, help="output directory file")
 @click.option('--logfile', type=click.File('w'), prompt=True, help="outputlogfile")
 @click.option('--checkbarcodes/--no-checkbarcodes', default=True, help="check the barcodes file")
-def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, max_mismatches, outdirectory, logfile, checkbarcodes):
+@click.option('--keepunassigned/--no-keepunassigned', default=True)
+def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, max_mismatches, outdirectory,
+                     logfile, checkbarcodes, keepunassigned):
     """
     Demultiplexing paired Fastq files with a barcode file.
 
@@ -75,8 +77,13 @@ def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, m
         if fastqs['barcode_distance'] > max_mismatches:
             barcode_mismatched += 1
 
-        if shouldwrite(fastqs, barcodedistance=max_mismatches):
+        if shouldwrite(fastqs, barcodedistance=max_mismatches, keepunassigned=keepunassigned):
             sampledict[sample] += 1
+
+            # if keepunassigned is true and sample is None, write ot Unassigned
+            if sample is None:
+                sample = "Unassigned"
+                
             fqout = outdirectory + "/" + sample + "_F.fq"
             rqout = outdirectory + "/" + sample + "_R.fq"
 
@@ -96,12 +103,15 @@ def demultiplexfastq(forward_fastq, reverse_fastq, barcodefile, barcodelength, m
     print("Finished Demultiplexing")
 
 
-def shouldwrite(fqdict, barcodedistance, filterspacermismatch=False, printout=False):
+def shouldwrite(fqdict, barcodedistance, keepunassigned, filterspacermismatch=False, printout=False):
     "do we want to write their record?"
     if printout:
         print(fqdict)
     if fqdict['sample'] is None:
-        return False
+        if keepunassigned is True:
+            return True
+        else:
+            return False
     if filterspacermismatch and fqdict['spacermismatch'] is True:
         return False
     if fqdict['barcode_distance'] > barcodedistance:
