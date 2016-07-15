@@ -18,7 +18,7 @@ from .barcodes import fastadataSchema, check_barcode, process_barcodefile
 
 def reversecomplement(s):
     "reverse complement a DNA strand"
-    compdict = {'A':'T','T':'A','C':'G','G':'C'}
+    compdict = {'A':'T','T':'A','C':'G','G':'C','N':'N'}
     srev = s.upper()[::-1] #
     return "".join([compdict[char] for char in srev])
 
