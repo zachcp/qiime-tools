@@ -1,4 +1,3 @@
-import multiprocessing
 from functools import partial
 
 import click
@@ -12,8 +11,6 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--discard/--no-discard', default=False, help="removes paired reads where forward or reverse are shorter than keep_left or keep_right")
 @click.option('--keep_left', type=click.INT, default=250, help="how much of the the forward reads should be kept.")
 @click.option('--keep_right', type=click.INT, default=175, help="how much of the reverse reads should be kept")
-@click.option('--ncpus',  type=click.INT, default=4, help="number of cpus to use. A little bit of parallelization \
-                                                          helps. But more than a few CPUs won't get you much benefit")
 @click.option('--revcomp/--no-revcomp', default=False, help="whether to reverse complement the second file")
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
@@ -56,20 +53,11 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_
     fastqfunc = partial(process_fastq, revcomp=revcomp, discard=discard, keep_right=keep_right, keep_left=keep_left,
                         spacer=spacer, spacercharacters=spacercharacters, samplename=samplename)
 
-    if ncpus==1:
-        #open and process the files by shelling out each fastq pair to the pool
-        results = map(fastqfunc, fastqs)
-        for result in results:
-            if result:
-                outfile.write(result)
-    else:
-        # create a pool of processing nodes
-        p = multiprocessing.Pool(ncpus)
-        #open and process the files by shelling out each fastq pair to the pool
-        results = p.imap(fastqfunc, fastqs)
-        for result in results:
-            if result:
-                outfile.write(result)
+    #open and process the files by shelling out each fastq pair to the pool
+    results = map(fastqfunc, fastqs)
+    for result in results:
+        if result:
+            outfile.write(result)
 
 
 def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, spacercharacters, samplename):
