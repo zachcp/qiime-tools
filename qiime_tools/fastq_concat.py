@@ -15,7 +15,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
 @click.option('--samplename', default=None, help="provide a sample anem to prefix reads with")
-def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_right, ncpus, revcomp,
+def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_right, revcomp,
                 spacer, spacercharacters, samplename):
     """
     This script takes two fastq files and simply concatenates them to give a single 
