@@ -18,9 +18,10 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--revcomp/--no-revcomp', default=False, help="whether to reverse complement the second file")
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
-@click.option('--sampledelimiter', default=None, help="add a spacer sequence between forward and reverse")
+@click.option('--samplename', default=None, help="provide a sample anem to prefix reads with")
+@click.option('--sampledelimiter', default=None, help="optional regex for processing the samplname")
 def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_right, ncpus, revcomp,
-                spacer, spacercharacters, sampledelimiter):
+                spacer, spacercharacters, samplename,sampledelimiter):
     """
     This script takes two fastq files and simply concatenates them to give a single 
     concatenated read as read from the forward strand. The second strand sequence is
@@ -44,11 +45,12 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_
     """
 
     #for splitting the sampel from the filename
-    if sampledelimiter is None:
+    if samplename is None:
         samplename = ""
     else:
-        delim = sampledelimiter + ".+$"
-        samplename = re.sub(delim, "", forward_fastq)
+        if sampledelimiter is not None:
+            delim = sampledelimiter + ".+$"
+            samplename = re.sub(delim, "", samplename)
 
 
     fastq_f = FastqGeneralIterator(open(forward_fastq,'r'))
