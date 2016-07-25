@@ -2,7 +2,6 @@ import multiprocessing
 from functools import partial
 
 import click
-import re
 from Bio.Seq import Seq
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
@@ -19,9 +18,8 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
 @click.option('--samplename', default=None, help="provide a sample anem to prefix reads with")
-@click.option('--sampledelimiter', default=None, help="optional regex for processing the samplname")
 def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_right, ncpus, revcomp,
-                spacer, spacercharacters, samplename,sampledelimiter):
+                spacer, spacercharacters, samplename):
     """
     This script takes two fastq files and simply concatenates them to give a single 
     concatenated read as read from the forward strand. The second strand sequence is
@@ -44,14 +42,11 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_
     
     """
 
-    #for splitting the sampel from the filename
+    #If smaplename is not provided make it
     if samplename is None:
         samplename = ""
     else:
-        if sampledelimiter is not None:
-            delim = sampledelimiter + ".+$"
-            samplename = re.sub(delim, "", samplename)
-
+        samplename = samplename + "_"
 
     fastq_f = FastqGeneralIterator(open(forward_fastq,'r'))
     fastq_r = FastqGeneralIterator(open(reverse_fastq,'r'))
@@ -107,7 +102,7 @@ def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, space
             newseq  = fseq[:keep_left] + rseq[-keep_right:]
             newqual = fqual[:keep_left] + rqual[-keep_right:]
 
-        return "@%s_%s\n%s\n+\n%s\n" % (samplename,ftitle, newseq, newqual)
+        return "@%s%s\n%s\n+\n%s\n" % (samplename,ftitle, newseq, newqual)
 
     else:
         #put the data together
@@ -120,7 +115,7 @@ def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, space
             newqual = fqual[:keep_left] + rqual[:keep_right]
 
 
-        return "@%s_%s\n%s\n+\n%s\n" % (samplename, ftitle, newseq, newqual)
+        return "@%s%s\n%s\n+\n%s\n" % (samplename, ftitle, newseq, newqual)
 
 
 
