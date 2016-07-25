@@ -2,12 +2,13 @@ import multiprocessing
 from functools import partial
 
 import click
+import re
 from Bio.Seq import Seq
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
 @click.command()
-@click.option('--forward_fastq', type=click.File('r'), prompt=True,help="name of the fastq forward file")
-@click.option('--reverse_fastq', type=click.File('r'), prompt=True, help="name of the fastq reverse file")
+@click.option('--forward_fastq', type=click.Path(exists=True), prompt=True,help="name of the fastq forward file")
+@click.option('--reverse_fastq', type=click.Path(exists=True), prompt=True, help="name of the fastq reverse file")
 @click.option('--outfile', type=click.File('w'), prompt=True, help="name of the output file")
 @click.option('--discard/--no-discard', default=False, help="removes paired reads where forward or reverse are shorter than keep_left or keep_right")
 @click.option('--keep_left', type=click.INT, default=250, help="how much of the the forward reads should be kept.")
@@ -17,8 +18,9 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--revcomp/--no-revcomp', default=False, help="whether to reverse complement the second file")
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
+@click.option('--sampledelimiter', default="_", help="add a spacer sequence between forward and reverse")
 def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_right, ncpus, revcomp,
-                spacer, spacercharacters):
+                spacer, spacercharacters, sampledelimiter):
     """
     This script takes two fastq files and simply concatenates them to give a single 
     concatenated read as read from the forward strand. The second strand sequence is
@@ -40,13 +42,19 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_
     This is intended for use with MiSeq reads where the paired ends are to be used for blasting or phylogenetic comparison.
     
     """
-    fastq_f = FastqGeneralIterator(forward_fastq)
-    fastq_r = FastqGeneralIterator(reverse_fastq)
+
+    #for splitting the sampel from the filename
+    delim = sampledelimiter + ".+$"
+    samplename = re.sub(delim, "", forward_fasta)
+
+
+    fastq_f = FastqGeneralIterator(open(forward_fastq,'r'))
+    fastq_r = FastqGeneralIterator(open(reverse_fastq,'r'))
     fastqs = zip(fastq_f, fastq_r)
 
     # use partial to create a function needing only one argument
     fastqfunc = partial(process_fastq, revcomp=revcomp, discard=discard, keep_right=keep_right, keep_left=keep_left,
-                        spacer=spacer, spacercharacters=spacercharacters)
+                        spacer=spacer, spacercharacters=spacercharacters, samplename=samplename)
 
     if ncpus==1:
         #open and process the files by shelling out each fastq pair to the pool
@@ -64,7 +72,7 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_
                 outfile.write(result)
 
 
-def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, spacercharacters):
+def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, spacercharacters, samplename):
     """
     take a forward and reverse fastq records, reverse complement the fastq and
     reverse the quality. Return a string on the concatenated record.
@@ -94,7 +102,7 @@ def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, space
             newseq  = fseq[:keep_left] + rseq[-keep_right:]
             newqual = fqual[:keep_left] + rqual[-keep_right:]
 
-        return "@%s\n%s\n+\n%s\n" % (ftitle, newseq, newqual)
+        return "@%s_%s\n%s\n+\n%s\n" % (samplename,ftitle, newseq, newqual)
 
     else:
         #put the data together
@@ -107,7 +115,7 @@ def process_fastq(fastqs, revcomp, discard, keep_left, keep_right, spacer, space
             newqual = fqual[:keep_left] + rqual[:keep_right]
 
 
-        return "@%s\n%s\n+\n%s\n" % (ftitle, newseq, newqual)
+        return "@%s_%s\n%s\n+\n%s\n" % (samplename, ftitle, newseq, newqual)
 
 
 
