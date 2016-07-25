@@ -18,7 +18,7 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 @click.option('--revcomp/--no-revcomp', default=False, help="whether to reverse complement the second file")
 @click.option('--spacer/--no-spacer', default=True, help="add a spacer sequence between forward and reverse")
 @click.option('--spacercharacters', default="NNNNNNNNNN", help="add a spacer sequence between forward and reverse")
-@click.option('--sampledelimiter', default="_", help="add a spacer sequence between forward and reverse")
+@click.option('--sampledelimiter', default=None, help="add a spacer sequence between forward and reverse")
 def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_right, ncpus, revcomp,
                 spacer, spacercharacters, sampledelimiter):
     """
@@ -44,8 +44,11 @@ def fastqconcat(forward_fastq, reverse_fastq, outfile, discard, keep_left, keep_
     """
 
     #for splitting the sampel from the filename
-    delim = sampledelimiter + ".+$"
-    samplename = re.sub(delim, "", forward_fasta)
+    if sampledelimiter is None:
+        samplename = ""
+    else:
+        delim = sampledelimiter + ".+$"
+        samplename = re.sub(delim, "", forward_fastq)
 
 
     fastq_f = FastqGeneralIterator(open(forward_fastq,'r'))
